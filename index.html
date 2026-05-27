@@ -862,6 +862,51 @@
   }
   .no-print {}
 
+  .view-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 6px;
+    border-radius: 3px;
+    margin-bottom: 2px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid transparent;
+    transition: border-color 0.15s;
+  }
+  .view-item:hover { border-color: var(--border); }
+  .view-item-name {
+    flex: 1;
+    font-family: var(--text-mono);
+    font-size: 11px;
+    color: var(--text);
+    background: transparent;
+    border: none;
+    outline: none;
+    cursor: text;
+    min-width: 0;
+  }
+  .view-item-name:focus {
+    background: rgba(255,255,255,0.05);
+    border-radius: 2px;
+    padding: 1px 3px;
+  }
+  .view-act-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 2px;
+    width: 22px; height: 22px;
+    cursor: pointer;
+    font-size: 11px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .view-act-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .view-act-btn.del:hover { border-color: #ff4444; color: #ff4444; }
+  #views-list::-webkit-scrollbar { width: 3px; }
+  #views-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
   /* Cesium UI overrides */
   .cesium-widget-credits { display: none !important; }
   .cesium-viewer-bottom { display: none !important; }
@@ -916,10 +961,36 @@
       <svg viewBox="0 0 24 24"><path d="M3 12h18M12 3v18"/><path d="M3 3l18 18" stroke-dasharray="3 3"/></svg>
       Sección
     </button>
-    <button class="tool-btn" id="btn-home" onclick="flyHome()">
-      <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/></svg>
-      Inicio
-    </button>
+    <div style="position:relative;">
+      <button class="tool-btn" id="btn-home" onclick="toggleViewsPanel()" title="Vistas guardadas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+        Vistas
+      </button>
+      <!-- Panel de vistas -->
+      <div id="views-panel" style="display:none;position:absolute;top:52px;left:0;
+        background:var(--panel);border:1px solid var(--border);border-radius:4px;
+        width:260px;z-index:500;box-shadow:0 4px 20px rgba(0,0,0,0.5);overflow:hidden;">
+        <div style="display:flex;justify-content:space-between;align-items:center;
+          padding:8px 10px;border-bottom:1px solid var(--border);">
+          <span style="font-family:var(--text-cond);font-size:11px;letter-spacing:2px;color:var(--accent);">VISTAS GUARDADAS</span>
+          <div style="display:flex;gap:5px;">
+            <button onclick="captureScreenshot()" title="Captura de pantalla"
+              style="background:rgba(255,209,102,0.1);border:1px solid #ffd166;color:#ffd166;
+              border-radius:2px;padding:3px 8px;cursor:pointer;font-family:var(--text-cond);font-size:10px;letter-spacing:1px;">
+              &#128247;
+            </button>
+            <button onclick="saveCurrentView()" title="Guardar vista actual"
+              style="background:rgba(0,212,255,0.1);border:1px solid var(--accent);color:var(--accent);
+              border-radius:2px;padding:3px 8px;cursor:pointer;font-family:var(--text-cond);font-size:10px;letter-spacing:1px;">
+              &#9733; GUARDAR
+            </button>
+          </div>
+        </div>
+        <div id="views-list" style="max-height:300px;overflow-y:auto;padding:4px;"></div>
+      </div>
+    </div>
     <button class="tool-btn" id="btn-center" onclick="centerModel()" title="Centrar modelo en pantalla">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><path d="M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M19.07 4.93l-2.83 2.83M7.76 16.24l-2.83 2.83"/></svg>
       Centrar
@@ -997,13 +1068,59 @@
 
     <div class="panel-section" style="flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;">
       <div class="panel-label" style="flex-shrink:0;display:flex;justify-content:space-between;align-items:center;">
-        <span>Anotaciones <span id="ann-count" style="color:var(--accent)">0</span></span>
+        <span>Anotaciones <span id="ann-count" style="color:var(--accent)">0</span><span id="ann-filter-count" style="color:var(--text-dim);font-size:10px;"></span></span>
         <button id="btn-ann-visibility" onclick="toggleAllAnnotations()" title="Mostrar/ocultar todas las anotaciones"
           style="background:transparent;border:none;color:var(--accent);cursor:pointer;padding:2px;display:flex;align-items:center;">
           <svg id="ann-eye-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
           </svg>
         </button>
+      </div>
+      <!-- Barra de filtros -->
+      <div id="ann-filters" style="flex-shrink:0;padding:4px 0 6px;border-bottom:1px solid var(--border);margin-bottom:4px;">
+        <select id="filter-tipo" onchange="applyFilters()" style="width:100%;margin-bottom:3px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:2px;color:var(--text-dim);font-family:var(--text-cond);font-size:10px;padding:3px 4px;">
+          <option value="">— Todos los tipos —</option>
+          <option value="fisura">Fisura</option>
+          <option value="crack">Grieta</option>
+          <option value="desconchadura">Desconchadura</option>
+          <option value="rebar">Acero expuesto</option>
+          <option value="corrosion">Corrosión</option>
+          <option value="carbonatacion">Carbonatación</option>
+          <option value="humedad">Humedad</option>
+          <option value="eflorecencias">Eflorescencias</option>
+          <option value="socavacion">Socavación</option>
+          <option value="bache">Bache</option>
+          <option value="pintura">Pintura</option>
+          <option value="erosion">Erosión</option>
+          <option value="asolve">Asolve</option>
+          <option value="vegetacion">Vegetación</option>
+          <option value="anclajes">Anclajes</option>
+          <option value="impactos">Impactos</option>
+          <option value="vandalismo">Vandalismo</option>
+          <option value="other">Otro</option>
+        </select>
+        <div style="display:flex;gap:3px;">
+          <select id="filter-sev" onchange="applyFilters()" style="flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:2px;color:var(--text-dim);font-family:var(--text-cond);font-size:10px;padding:3px 4px;">
+            <option value="">— Severidad —</option>
+            <option value="0">0 — Sin daño</option>
+            <option value="1">1 — Muy leve</option>
+            <option value="2">2 — Leve</option>
+            <option value="3">3 — Moderado</option>
+            <option value="4">4 — Severo</option>
+            <option value="5">5 — Muy severo</option>
+          </select>
+          <select id="filter-comp" onchange="applyFilters()" style="flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:2px;color:var(--text-dim);font-family:var(--text-cond);font-size:10px;padding:3px 4px;">
+            <option value="">— Componente —</option>
+            <option value="Superficie de rodadura">Sup. rodadura</option>
+            <option value="Superestructura">Superestructura</option>
+            <option value="Subestructura">Subestructura</option>
+            <option value="Cimentación">Cimentación</option>
+            <option value="Obras de drenaje">Drenaje</option>
+          </select>
+          <button onclick="clearFilters()" title="Limpiar filtros"
+            style="background:transparent;border:1px solid var(--border);color:var(--text-dim);
+            border-radius:2px;padding:0 6px;cursor:pointer;font-size:11px;flex-shrink:0;">✕</button>
+        </div>
       </div>
       <div id="annotations-list" style="flex:1;overflow-y:auto;min-height:0;"></div>
     </div>
@@ -1312,7 +1429,7 @@
         </div>
         <button class="btn-primary"   id="ann-btn-add"    onclick="addAnnotationFromForm()" style="margin-bottom:4px;">+ AÑADIR PUNTO</button>
         <button class="btn-secondary" id="ann-btn-finish" onclick="_annGeom==='profile'?generateProfile():_annGeom==='polygon'?finishPolyAnn():finishLineAnn()" style="display:none;margin-bottom:4px;">&#10003; GUARDAR</button>
-        <button class="btn-secondary" id="ann-btn-cancel" onclick="cancelLineAnn()" style="display:none;">&#10005; CANCELAR</button>
+        <button class="btn-secondary" id="ann-btn-cancel" onclick="_annGeom==='polygon'?cancelPolyAnn():cancelLineAnn()" style="display:none;">&#10005; CANCELAR</button>
         <div style="font-size:10px; color:var(--text-dim); margin-top:6px; text-align:center; letter-spacing:0.5px;">
           Haz clic en el modelo para posicionar
         </div>
@@ -1883,13 +2000,42 @@ function generateReport() {
 
   // Por tipo
   html += '<table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:12px;">'
-    +'<tr style="background:#eef2f7;"><th style="padding:5px 10px;border:1px solid #ddd;text-align:left;color:#1a3a5c;">Tipo de Deterioro</th><th style="padding:5px 10px;border:1px solid #ddd;text-align:center;color:#1a3a5c;">Cantidad</th><th style="padding:5px 10px;border:1px solid #ddd;text-align:center;color:#1a3a5c;">%</th></tr>';
-  Object.keys(tipoCount).sort(function(a,b){return tipoCount[b]-tipoCount[a];}).forEach(function(t,i){
-    var pct = total ? (tipoCount[t]/total*100).toFixed(1) : 0;
+    +'<tr style="background:#eef2f7;">'
+    +'<th style="padding:5px 10px;border:1px solid #ddd;text-align:left;color:#1a3a5c;">Tipo de Deterioro</th>'
+    +'<th style="padding:5px 10px;border:1px solid #ddd;text-align:center;color:#1a3a5c;">Unidad</th>'
+    +'<th style="padding:5px 10px;border:1px solid #ddd;text-align:center;color:#1a3a5c;">Cantidad total</th>'
+    +'<th style="padding:5px 10px;border:1px solid #ddd;text-align:center;color:#1a3a5c;"># Elementos</th>'
+    +'</tr>';
+
+  // Agrupar por tipo + unidad
+  var tipoUnitMap = {};
+  annotations.forEach(function(a) {
+    var unit, cantNum;
+    if (a.geom === 'point') {
+      unit = 'pza'; cantNum = 1;
+    } else if (a.geom === 'line' && a.length !== undefined) {
+      unit = 'm'; cantNum = a.length;
+    } else if (a.geom === 'polygon' && a.area !== undefined) {
+      var aFmtT = formatArea(a.area);
+      unit = aFmtT.unit; cantNum = parseFloat(aFmtT.val);
+    } else {
+      unit = 'pza'; cantNum = 1;
+    }
+    var key = a.type + '|' + unit;
+    if (!tipoUnitMap[key]) tipoUnitMap[key] = { tipo: a.type, unit: unit, total: 0, n: 0 };
+    tipoUnitMap[key].total += cantNum;
+    tipoUnitMap[key].n++;
+  });
+
+  var tipoUnitRows = Object.values(tipoUnitMap).sort(function(a,b){ return b.n - a.n; });
+  tipoUnitRows.forEach(function(row, i) {
+    var cantStr = row.unit === 'pza' ? '—' : row.unit === 'm' ? row.total.toFixed(2) : row.total.toFixed(4);
     html += '<tr style="background:'+(i%2===0?'#f9f9f9':'#fff')+';">'
-      +'<td style="padding:5px 10px;border:1px solid #ddd;">'+(TYPE_LABELS[t]||t)+'</td>'
-      +'<td style="padding:5px 10px;border:1px solid #ddd;text-align:center;">'+tipoCount[t]+'</td>'
-      +'<td style="padding:5px 10px;border:1px solid #ddd;text-align:center;">'+pct+'%</td></tr>';
+      +'<td style="padding:5px 10px;border:1px solid #ddd;">'+(TYPE_LABELS[row.tipo]||row.tipo)+'</td>'
+      +'<td style="padding:5px 10px;border:1px solid #ddd;text-align:center;font-weight:bold;color:#2c5282;">'+row.unit+'</td>'
+      +'<td style="padding:5px 10px;border:1px solid #ddd;text-align:center;">'+cantStr+'</td>'
+      +'<td style="padding:5px 10px;border:1px solid #ddd;text-align:center;">'+row.n+'</td>'
+      +'</tr>';
   });
   html += '</table>';
 
@@ -1960,6 +2106,52 @@ function generateReport() {
     html += '</div>';
   });
   html += '</div>';
+
+  // ── REPORTE FOTOGRÁFICO ──
+  var annsConFoto = annotations.filter(function(a){ return a.foto; });
+  if (annsConFoto.length > 0) {
+    html += '<div style="margin-bottom:20px;page-break-before:auto;">'
+      +'<div style="background:#1a3a5c;color:#fff;font-weight:bold;font-size:11px;letter-spacing:2px;padding:6px 10px;margin-bottom:12px;">REPORTE FOTOGRÁFICO</div>';
+
+    // Grid de 2 columnas
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">';
+    annsConFoto.forEach(function(a) {
+      var sevTxt   = (a.severidad!==null&&a.severidad!==undefined) ? a.severidad+' — '+SEV_L[a.severidad] : '—';
+      var sevColor = (a.severidad!==null&&a.severidad!==undefined) ? SEV_C[a.severidad] : '#999';
+      var unidad = '—', cantidad = '—';
+      if (a.geom === 'point') { unidad = 'pza'; cantidad = '1'; }
+      else if (a.geom === 'line'    && a.length) { unidad = 'm';  cantidad = a.length.toFixed(2); }
+      else if (a.geom === 'polygon' && a.area)   { var af=formatArea(a.area); unidad=af.unit; cantidad=af.val; }
+
+      html += '<div style="border:1px solid #ddd;border-radius:4px;overflow:hidden;break-inside:avoid;">'
+        // Foto
+        +'<img src="'+a.foto+'" style="width:100%;height:160px;object-fit:cover;display:block;border-bottom:1px solid #ddd;">'
+        // Datos
+        +'<div style="padding:8px 10px;">'
+          // Título
+          +'<div style="font-size:11px;font-weight:bold;color:#1a3a5c;margin-bottom:6px;">'+a.title+'</div>'
+          // Tabla de datos
+          +'<table style="width:100%;border-collapse:collapse;font-size:10px;">'
+            +'<tr><td style="padding:2px 4px;color:#666;width:45%;">Tipo de deterioro</td>'
+              +'<td style="padding:2px 4px;font-weight:bold;">'+(TYPE_LABELS[a.type]||a.type)+'</td></tr>'
+            +'<tr style="background:#f9f9f9;"><td style="padding:2px 4px;color:#666;">Severidad</td>'
+              +'<td style="padding:2px 4px;font-weight:bold;color:'+sevColor+';">'+sevTxt+'</td></tr>'
+            +'<tr><td style="padding:2px 4px;color:#666;">Componente</td>'
+              +'<td style="padding:2px 4px;">'+(a.componente||'—')+'</td></tr>'
+            +'<tr style="background:#f9f9f9;"><td style="padding:2px 4px;color:#666;">Elemento</td>'
+              +'<td style="padding:2px 4px;">'+(a.elemento||'—')+'</td></tr>'
+            +'<tr><td style="padding:2px 4px;color:#666;">Unidad</td>'
+              +'<td style="padding:2px 4px;">'+unidad+'</td></tr>'
+            +'<tr style="background:#f9f9f9;"><td style="padding:2px 4px;color:#666;">Cantidad</td>'
+              +'<td style="padding:2px 4px;font-weight:bold;">'+cantidad+'</td></tr>'
+          +'</table>'
+          +(a.notes ? '<div style="margin-top:6px;font-size:9px;color:#666;font-style:italic;border-top:1px solid #eee;padding-top:4px;">'+a.notes+'</div>' : '')
+        +'</div>'
+      +'</div>';
+    });
+
+    html += '</div></div>';
+  }
 
   // ── PIE ──
   html += '<div style="border-top:2px solid #1a3a5c;padding-top:10px;text-align:center;font-size:9px;color:#999;">'
@@ -2422,6 +2614,153 @@ function showFormatHelp(ext) {
 }
 
 // ── FLY HOME ──
+// ── VISTAS GUARDADAS ─────────────────────────────────────────────────────────
+var _savedViews = [];
+
+// ── CAPTURA DE PANTALLA ──────────────────────────────────────────────────────
+var _screenshotDataUrl = null;
+
+function captureScreenshot() {
+  // Cerrar el panel de vistas
+  document.getElementById('views-panel').style.display = 'none';
+
+  // Paso 1: forzar render de Cesium
+  viewer.render();
+
+  // Paso 2: esperar que el frame se pinte completamente, luego capturar
+  // Usar requestAnimationFrame para capturar ANTES de mostrar el modal
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      try {
+        _screenshotDataUrl = viewer.canvas.toDataURL('image/png');
+
+        // Paso 3: DESPUÉS de capturar, mostrar el modal
+        var now    = new Date();
+        var ts     = now.getFullYear() + '-'
+          + String(now.getMonth()+1).padStart(2,'0') + '-'
+          + String(now.getDate()).padStart(2,'0') + '_'
+          + String(now.getHours()).padStart(2,'0')
+          + String(now.getMinutes()).padStart(2,'0');
+
+        document.getElementById('screenshot-name').value    = 'INSPECTWIN_' + ts;
+        document.getElementById('screenshot-preview').src   = _screenshotDataUrl;
+        document.getElementById('screenshot-modal').style.display = 'flex';
+
+      } catch(e) {
+        showToast('Error al capturar: ' + e.message);
+      }
+    });
+  });
+}
+
+function downloadScreenshot() {
+  if (!_screenshotDataUrl) return;
+  var name = document.getElementById('screenshot-name').value || 'INSPECTWIN_captura';
+  if (!name.endsWith('.png')) name += '.png';
+  var a = document.createElement('a');
+  a.href = _screenshotDataUrl;
+  a.download = name;
+  a.click();
+  showToast('Imagen guardada: ' + name);
+}
+
+function closeScreenshot() {
+  document.getElementById('screenshot-modal').style.display = 'none';
+  _screenshotDataUrl = null;
+}
+
+function toggleViewsPanel() {
+  var panel = document.getElementById('views-panel');
+  if (!panel) return;
+  var isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) renderViewsList();
+}
+
+// Cerrar panel al hacer clic fuera
+document.addEventListener('click', function(e) {
+  var panel = document.getElementById('views-panel');
+  var btn   = document.getElementById('btn-home');
+  if (panel && !panel.contains(e.target) && !btn.contains(e.target)) {
+    panel.style.display = 'none';
+  }
+});
+
+function saveCurrentView() {
+  var cam = viewer.camera;
+  var name = 'Vista ' + (_savedViews.length + 1);
+  var view = {
+    id: Date.now(),
+    nombre: name,
+    position: { x: cam.position.x, y: cam.position.y, z: cam.position.z },
+    heading: cam.heading,
+    pitch:   cam.pitch,
+    roll:    cam.roll,
+  };
+  _savedViews.push(view);
+  persistViews();
+  renderViewsList();
+  showToast('Vista guardada: ' + name);
+}
+
+function flyToView(id) {
+  var v = _savedViews.find(function(v){ return v.id === id; });
+  if (!v) return;
+  viewer.camera.flyTo({
+    destination: new Cesium.Cartesian3(v.position.x, v.position.y, v.position.z),
+    orientation: { heading: v.heading, pitch: v.pitch, roll: v.roll },
+    duration: 1.5,
+  });
+  document.getElementById('views-panel').style.display = 'none';
+}
+
+function deleteView(id) {
+  _savedViews = _savedViews.filter(function(v){ return v.id !== id; });
+  persistViews();
+  renderViewsList();
+}
+
+function renameView(id, newName) {
+  var v = _savedViews.find(function(v){ return v.id === id; });
+  if (v) { v.nombre = newName; persistViews(); }
+}
+
+function renderViewsList() {
+  var list = document.getElementById('views-list');
+  if (!list) return;
+
+  var FLY = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+  var DEL = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>';
+
+  if (_savedViews.length === 0) {
+    list.innerHTML = '<div style="padding:12px;text-align:center;font-family:var(--text-cond);font-size:10px;color:var(--text-dim);letter-spacing:1px;">SIN VISTAS GUARDADAS</div>';
+    return;
+  }
+
+  var html2 = '';
+  _savedViews.forEach(function(v) {
+    var safeNombre = v.nombre.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+    html2 += '<div class="view-item">'
+      + '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="var(--text-dim)" stroke-width="2" style="flex-shrink:0;"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>'
+      + '<input class="view-item-name" type="text" data-vid="' + v.id + '" value="' + safeNombre + '" onblur="renameView(' + v.id + ',this.value)">'
+      + '<button class="view-act-btn" onclick="flyToView(' + v.id + ')" title="Volar a esta vista">' + FLY + '</button>'
+      + '<button class="view-act-btn del" onclick="deleteView(' + v.id + ')" title="Eliminar">' + DEL + '</button>'
+      + '</div>';
+  });
+  list.innerHTML = html2;
+}
+
+function persistViews() {
+  try { localStorage.setItem('inspectwin-views', JSON.stringify(_savedViews)); } catch(e) {}
+}
+
+function loadPersistedViews() {
+  try {
+    var raw = localStorage.getItem('inspectwin-views');
+    if (raw) _savedViews = JSON.parse(raw);
+  } catch(e) {}
+}
+
 function flyHome() {
   if (currentTileset) {
     centerModel();
@@ -3605,9 +3944,12 @@ function cancelPolyAnn() {
   _polyAnnPts = [];
   _polyAnnEnts.forEach(function(e){ try{viewer.entities.remove(e);}catch(ex){} });
   _polyAnnEnts = [];
-  if (_polyAnnDynLine) { viewer.entities.remove(_polyAnnDynLine); _polyAnnDynLine = null; }
+  if (_polyAnnDynLine) { try{viewer.entities.remove(_polyAnnDynLine);}catch(ex){} _polyAnnDynLine = null; }
   document.getElementById('ann-btn-finish').style.display = 'none';
   document.getElementById('ann-btn-cancel').style.display = 'none';
+  var hint = document.getElementById('ann-hint');
+  if (hint) hint.textContent = 'Clic para vértices — doble clic para cerrar el área';
+  _annGeom = 'polygon'; // mantener modo polygon activo pero limpiar el dibujo
 }
 
 function finishPolyAnn() {
@@ -4068,7 +4410,8 @@ function renderAnnotationList() {
     {v:'other',         l:'Otro'},
   ];
 
-  list.innerHTML = annotations.map(function(a) {
+  var visibleAnns = getFilteredAnnotations();
+  list.innerHTML = visibleAnns.map(function(a) {
     const i      = annotations.indexOf(a);
     const TAG_MAP = {
       fisura:'FISURA', crack:'GRIETA', desconchadura:'DESCONCH.', rebar:'ACERO',
@@ -4164,7 +4507,7 @@ function renderAnnotationList() {
         +'</div>'
       +'</div>'
     +'</div>';
-  }).join('');
+  }).join('') || '<div style="padding:16px;text-align:center;font-family:var(--text-cond);font-size:10px;color:var(--text-dim);letter-spacing:1px;">SIN RESULTADOS<br><span style=\"font-size:9px;margin-top:4px;display:block;\">Ajusta o limpia los filtros</span></div>';
 }
 
 // ── FOTOS EN ANOTACIONES ────────────────────────────────────────────────────
@@ -4224,6 +4567,69 @@ function closePhotoModal() {
 // ── VISIBILIDAD GLOBAL DE ANOTACIONES ────────────────────────────────────────
 var _allAnnotationsVisible = true;
 
+// ── FILTROS DE ANOTACIONES ───────────────────────────────────────────────────
+var _activeFilters = { tipo: '', sev: '', comp: '' };
+
+function applyFilters() {
+  _activeFilters.tipo = document.getElementById('filter-tipo').value;
+  _activeFilters.sev  = document.getElementById('filter-sev').value;
+  _activeFilters.comp = document.getElementById('filter-comp').value;
+
+  var total    = annotations.length;
+  var visible  = 0;
+
+  annotations.forEach(function(a) {
+    var show = true;
+
+    // Aplicar filtros
+    if (_activeFilters.tipo && a.type !== _activeFilters.tipo) show = false;
+    if (_activeFilters.sev  !== '' && (a.severidad === null || a.severidad === undefined || String(a.severidad) !== _activeFilters.sev)) show = false;
+    if (_activeFilters.comp && (a.componente || '') !== _activeFilters.comp) show = false;
+
+    // Actualizar visibilidad en el modelo 3D
+    if (a.entities) {
+      a.entities.forEach(function(e) {
+        if (e) try { e.show = show && _allAnnotationsVisible; } catch(ex) {}
+      });
+    }
+
+    if (show) visible++;
+  });
+
+  // Actualizar contador
+  var countEl = document.getElementById('ann-filter-count');
+  var hasFilter = _activeFilters.tipo || _activeFilters.sev !== '' || _activeFilters.comp;
+  if (countEl) {
+    countEl.textContent = hasFilter ? ' (' + visible + ' de ' + total + ')' : '';
+  }
+
+  // Resaltar botón limpiar si hay filtros activos
+  var clearBtn = document.querySelector('#ann-filters button');
+  if (clearBtn) {
+    clearBtn.style.borderColor = hasFilter ? 'var(--accent)' : 'var(--border)';
+    clearBtn.style.color       = hasFilter ? 'var(--accent)' : 'var(--text-dim)';
+  }
+
+  renderAnnotationList();
+}
+
+function clearFilters() {
+  _activeFilters = { tipo: '', sev: '', comp: '' };
+  document.getElementById('filter-tipo').value = '';
+  document.getElementById('filter-sev').value  = '';
+  document.getElementById('filter-comp').value = '';
+  applyFilters();
+}
+
+function getFilteredAnnotations() {
+  return annotations.filter(function(a) {
+    if (_activeFilters.tipo && a.type !== _activeFilters.tipo) return false;
+    if (_activeFilters.sev !== '' && (a.severidad === null || a.severidad === undefined || String(a.severidad) !== _activeFilters.sev)) return false;
+    if (_activeFilters.comp && (a.componente || '') !== _activeFilters.comp) return false;
+    return true;
+  });
+}
+
 function toggleAllAnnotations() {
   _allAnnotationsVisible = !_allAnnotationsVisible;
   // Actualizar icono
@@ -4236,11 +4642,13 @@ function toggleAllAnnotations() {
   }
   // Mostrar/ocultar todas las entidades de todas las anotaciones
   annotations.forEach(function(a) {
+    var passesFilter = true;
+    if (_activeFilters.tipo && a.type !== _activeFilters.tipo) passesFilter = false;
+    if (_activeFilters.sev !== '' && (a.severidad === null || a.severidad === undefined || String(a.severidad) !== _activeFilters.sev)) passesFilter = false;
+    if (_activeFilters.comp && (a.componente || '') !== _activeFilters.comp) passesFilter = false;
     if (a.entities) {
       a.entities.forEach(function(e) {
-        if (e && !e.isDestroyed) {
-          try { e.show = _allAnnotationsVisible; } catch(ex) {}
-        }
+        if (e) try { e.show = _allAnnotationsVisible && passesFilter; } catch(ex) {}
       });
     }
   });
@@ -4407,13 +4815,17 @@ function importAnnotations(event) {
         return;
       }
 
-      // Restaurar datos del puente si existen en el JSON
-      if (data.puente) {
-        _bridgeData = data.puente;
-        showToast(count + ' anotaciones importadas — datos del puente cargados');
-      } else {
-        showToast(count + ' anotaciones importadas');
+      // Restaurar datos del puente
+      if (data.puente) _bridgeData = data.puente;
+      // Restaurar vistas guardadas
+      if (data.vistas && data.vistas.length) {
+        _savedViews = data.vistas;
+        persistViews();
       }
+      var msg = count + ' anotaciones importadas';
+      if (data.puente) msg += ' — datos del puente cargados';
+      if (data.vistas && data.vistas.length) msg += ' — ' + data.vistas.length + ' vistas restauradas';
+      showToast(msg);
       renderAnnotationList();
       document.getElementById('import-input').value = '';
 
@@ -4671,7 +5083,9 @@ function exportAsJSON() {
     };
   });
   _downloadBlob(JSON.stringify({ proyecto:'INSPECTWIN', exportado: new Date().toISOString(),
-    total: clean.length, puente: _bridgeData || null, anotaciones: clean }, null, 2),
+    total: clean.length, puente: _bridgeData || null,
+    vistas: _savedViews.length ? _savedViews : null,
+    anotaciones: clean }, null, 2),
     'anotaciones-inspectwin-' + date + '.json', 'application/json');
   document.getElementById('export-menu').style.display = 'none';
   showToast('JSON exportado — ' + clean.length + ' anotaciones');
@@ -5200,6 +5614,43 @@ showToast('INSPECTWIN listo — carga un modelo 3D Tiles o .GLB');
         color:#000;font-family:var(--text-cond);font-size:12px;letter-spacing:2px;padding:10px;border-radius:3px;cursor:pointer;font-weight:bold;">
         ▶ GENERAR REPORTE
       </button>
+    </div>
+  </div>
+
+  <!-- Modal de captura de pantalla -->
+  <div id="screenshot-modal" onclick="if(event.target===this)closeScreenshot()" style="display:none;position:fixed;
+    top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.88);z-index:9300;
+    align-items:center;justify-content:center;flex-direction:column;">
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:6px;
+      width:700px;max-width:95vw;overflow:hidden;">
+      <!-- Header -->
+      <div style="display:flex;justify-content:space-between;align-items:center;
+        padding:10px 14px;border-bottom:1px solid var(--border);">
+        <span style="font-family:var(--text-cond);font-size:12px;letter-spacing:2px;color:var(--accent);">&#128247; CAPTURA DE PANTALLA</span>
+        <button onclick="closeScreenshot()" style="background:transparent;border:1px solid var(--border);
+          color:var(--text-dim);width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:14px;">&#10005;</button>
+      </div>
+      <!-- Vista previa -->
+      <div style="padding:12px;">
+        <img id="screenshot-preview" src="" alt="Captura" style="width:100%;border-radius:3px;
+          border:1px solid var(--border);display:block;">
+      </div>
+      <!-- Botones -->
+      <div style="display:flex;gap:8px;padding:0 12px 12px;">
+        <input type="text" id="screenshot-name" placeholder="nombre-captura"
+          style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--border);
+          border-radius:2px;color:var(--text);font-family:var(--text-mono);font-size:11px;padding:6px 8px;">
+        <button onclick="downloadScreenshot()" style="background:rgba(255,209,102,0.15);
+          border:1px solid #ffd166;color:#ffd166;font-family:var(--text-cond);font-size:11px;
+          letter-spacing:1px;padding:6px 16px;border-radius:2px;cursor:pointer;">
+          &#8659; DESCARGAR PNG
+        </button>
+        <button onclick="closeScreenshot()" style="background:transparent;border:1px solid var(--border);
+          color:var(--text-dim);font-family:var(--text-cond);font-size:11px;letter-spacing:1px;
+          padding:6px 12px;border-radius:2px;cursor:pointer;">
+          CERRAR
+        </button>
+      </div>
     </div>
   </div>
 
