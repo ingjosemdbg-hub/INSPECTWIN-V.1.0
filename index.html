@@ -1078,6 +1078,20 @@
       </div>
       <!-- Barra de filtros -->
       <div id="ann-filters" style="flex-shrink:0;padding:4px 0 6px;border-bottom:1px solid var(--border);margin-bottom:4px;">
+        <!-- Búsqueda global -->
+        <div style="display:flex;gap:4px;margin-bottom:5px;">
+          <div style="flex:1;position:relative;">
+            <span style="position:absolute;left:7px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:11px;pointer-events:none;">🔍</span>
+            <input type="text" id="search-ann" placeholder="Buscar código, título, notas..."
+              oninput="applyFilters()"
+              style="width:100%;box-sizing:border-box;padding:4px 6px 4px 24px;
+              background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:2px;
+              color:var(--text);font-family:var(--text-mono);font-size:10px;">
+          </div>
+          <button onclick="clearSearch()" id="btn-clear-search" title="Limpiar búsqueda"
+            style="display:none;background:transparent;border:1px solid var(--accent);
+            color:var(--accent);border-radius:2px;padding:0 6px;cursor:pointer;font-size:11px;flex-shrink:0;">✕</button>
+        </div>
         <select id="filter-tipo" onchange="applyFilters()" style="width:100%;margin-bottom:3px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:2px;color:var(--text-dim);font-family:var(--text-cond);font-size:10px;padding:3px 4px;">
           <option value="">— Todos los tipos —</option>
           <option value="fisura">Fisura</option>
@@ -2072,7 +2086,8 @@ function generateReport() {
       html += '<div style="margin-left:10px;border-left:3px solid #2c5282;margin-bottom:4px;">'
         +'<div style="background:#ebf4ff;font-size:10px;font-weight:bold;padding:3px 8px;color:#2c5282;">'+elem+' ('+anns2.length+')</div>'
         +'<table style="width:100%;border-collapse:collapse;font-size:10px;">'
-        +'<tr style="background:#eef2f7;"><th style="padding:3px 6px;border:1px solid #ddd;text-align:left;">Título</th>'
+        +'<tr style="background:#eef2f7;"><th style="padding:3px 6px;border:1px solid #ddd;text-align:left;color:#1a3a5c;">Código</th>'
+        +'<th style="padding:3px 6px;border:1px solid #ddd;text-align:left;">Título</th>'
         +'<th style="padding:3px 6px;border:1px solid #ddd;">Tipo</th>'
         +'<th style="padding:3px 6px;border:1px solid #ddd;">Geom.</th>'
         +'<th style="padding:3px 6px;border:1px solid #ddd;">Unidad</th>'
@@ -2093,6 +2108,7 @@ function generateReport() {
           unidad = aFmtTr.unit; cantidad = aFmtTr.val;
         }
         html += '<tr style="background:'+(ai%2===0?'#fafafa':'#fff')+';">'
+          +'<td style="padding:3px 6px;border:1px solid #ddd;font-family:monospace;font-weight:bold;color:#1a3a5c;white-space:nowrap;">'+(a.codigo||'—')+'</td>'
           +'<td style="padding:3px 6px;border:1px solid #ddd;">'+a.title+'</td>'
           +'<td style="padding:3px 6px;border:1px solid #ddd;text-align:center;">'+(TYPE_LABELS[a.type]||a.type)+'</td>'
           +'<td style="padding:3px 6px;border:1px solid #ddd;text-align:center;">'+(GEOM_L[a.geom]||a.geom)+'</td>'
@@ -2129,7 +2145,8 @@ function generateReport() {
         // Datos
         +'<div style="padding:8px 10px;">'
           // Título
-          +'<div style="font-size:11px;font-weight:bold;color:#1a3a5c;margin-bottom:6px;">'+a.title+'</div>'
+          +'<div style="font-size:11px;font-weight:bold;color:#1a3a5c;margin-bottom:2px;">'+a.title+'</div>'
+        +(a.codigo ? '<div style="font-family:monospace;font-size:10px;color:#2c5282;font-weight:bold;margin-bottom:6px;letter-spacing:1px;">'+a.codigo+'</div>' : '')
           // Tabla de datos
           +'<table style="width:100%;border-collapse:collapse;font-size:10px;">'
             +'<tr><td style="padding:2px 4px;color:#666;width:45%;">Tipo de deterioro</td>'
@@ -3707,6 +3724,38 @@ var _ANN_COLORS = {
   vandalismo:    '#e84393',
   other:         '#c8d6e5',
 };
+// ── CÓDIGOS DE DETERIORO ─────────────────────────────────────────────────────
+var _TYPE_PREFIX = {
+  fisura:'FS', crack:'GR', desconchadura:'DC', rebar:'AE',
+  corrosion:'CO', carbonatacion:'CB', humedad:'HU', eflorecencias:'EF',
+  socavacion:'SC', bache:'BH', pintura:'PT', erosion:'ER',
+  asolve:'AS', vegetacion:'VG', anclajes:'AN', impactos:'IM',
+  vandalismo:'VD', other:'OT',
+};
+// Contador por tipo — secuencial, no se reutiliza
+var _typeCounters = {};
+
+function generateCode(type) {
+  var prefix = _TYPE_PREFIX[type] || 'OT';
+  if (!_typeCounters[type]) _typeCounters[type] = 0;
+  _typeCounters[type]++;
+  return prefix + '-' + String(_typeCounters[type]).padStart(3, '0');
+}
+
+function rebuildCounters() {
+  // Reconstruir contadores desde las anotaciones existentes al importar
+  _typeCounters = {};
+  annotations.forEach(function(a) {
+    if (a.codigo) {
+      var n = parseInt(a.codigo.split('-')[1]);
+      if (!isNaN(n)) {
+        _typeCounters[a.type] = Math.max(_typeCounters[a.type]||0, n);
+      }
+    }
+  });
+}
+
+
 
 // ── PERFIL TOPOGRÁFICO ───────────────────────────────────────────────────────
 var _profilePts   = [];   // puntos ECEF del perfil
@@ -4028,6 +4077,7 @@ function finishPolyAnn() {
   var elemInputP = document.getElementById('ann-elemento');
   var ann = {
     id: Date.now(),
+    codigo: generateCode(type),
     title: title, type: type, notes: notes,
     severidad:  sevInputP  && sevInputP.value  !== '' ? parseInt(sevInputP.value) : null,
     componente: compInputP ? (compInputP.value || null) : null,
@@ -4149,6 +4199,7 @@ function finishLineAnn() {
   var elemInputL = document.getElementById('ann-elemento');
   var ann = {
     id: Date.now(),
+    codigo: generateCode(type),
     title: title,
     type: type,
     geom: 'line',
@@ -4331,6 +4382,7 @@ function addAnnotationFromForm() {
   var elemInput  = document.getElementById('ann-elemento');
   const ann = {
     id: Date.now(),
+    codigo:      generateCode(type),
     title,
     type,
     notes,
@@ -4455,9 +4507,10 @@ function renderAnnotationList() {
     var safeTitle = (a.title||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
     var safeNotes = (a.notes||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
 
-    return '<div class="annotation-item">'
+    var opacity = a.visible===false ? 'opacity:0.4;' : '';
+    return '<div class="annotation-item" style="'+opacity+'">'
       +'<div onclick="toggleAnnDetail('+a.id+')" style="cursor:pointer;">'
-        +'<div class="ann-title">'+icon+a.title
+        +'<div class="ann-title">'+icon+(a.codigo?'<span style="font-family:var(--text-mono);font-size:9px;color:var(--accent);margin-right:5px;letter-spacing:0.5px;">'+a.codigo+'</span>':'')+a.title
           +'<span class="ann-tag '+a.type+'">'+tag+'</span>'
           +'<span style="float:right;color:var(--text-dim);font-size:10px;">'+(isOpen?'▲':'▼')+'</span>'
         +'</div>'
@@ -4490,6 +4543,8 @@ function renderAnnotationList() {
           +'<option value="">— Sin elemento —</option>'
           +(a.componente && BRIDGE_COMPONENTS[a.componente] ? BRIDGE_COMPONENTS[a.componente].map(function(e){ return '<option value="'+e+'"'+(a.elemento===e?' selected':'')+'>'+e+'</option>'; }).join('') : '')
           +'</select></div>'
+        +'<div class="ann-detail-row"><div class="ann-detail-label">CÓDIGO</div>'
+          +'<div style="font-family:var(--text-mono);font-size:13px;font-weight:bold;color:var(--accent);letter-spacing:2px;">'+(a.codigo||'—')+'</div></div>'
         +'<div class="ann-detail-row"><div class="ann-detail-label">COORDENADAS</div>'
           +'<div class="ann-coords-detail">'+coordDetail+'</div></div>'
         +'<button class="ann-save-btn" onclick="saveAnnotation('+i+')">&#10003; GUARDAR CAMBIOS</button>'
@@ -4502,7 +4557,12 @@ function renderAnnotationList() {
               +'<input type="file" id="photo-input-'+i+'" accept="image/*" style="display:none;" onchange="attachPhoto('+i+',this)">'
           )
         +'</div>'
-        +'<div style="display:flex;justify-content:flex-end;margin-top:5px;">'
+        +'<div style="display:flex;justify-content:flex-end;gap:5px;margin-top:5px;">'
+          +'<button class="ann-del-btn" onclick="toggleAnnVisibility('+i+')" title="'+(a.visible===false?'Mostrar':'Ocultar')+' anotación" style="border-color:'+(a.visible===false?'#ffd166':'var(--border)')+';color:'+(a.visible===false?'#ffd166':'var(--text-dim')+');">'
+          +(a.visible===false
+            ? '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19M1 1l22 22"/></svg> MOSTRAR'
+            : '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> OCULTAR'
+          )+'</button>'
           +'<button class="ann-del-btn" onclick="deleteAnnotation('+i+')" title="Eliminar">'+TRASH+' BORRAR</button>'
         +'</div>'
       +'</div>'
@@ -4571,9 +4631,16 @@ var _allAnnotationsVisible = true;
 var _activeFilters = { tipo: '', sev: '', comp: '' };
 
 function applyFilters() {
-  _activeFilters.tipo = document.getElementById('filter-tipo').value;
-  _activeFilters.sev  = document.getElementById('filter-sev').value;
-  _activeFilters.comp = document.getElementById('filter-comp').value;
+  _activeFilters.tipo   = document.getElementById('filter-tipo').value;
+  _activeFilters.sev    = document.getElementById('filter-sev').value;
+  _activeFilters.comp   = document.getElementById('filter-comp').value;
+  var searchEl = document.getElementById('search-ann');
+  var searchQ  = searchEl ? searchEl.value.trim().toLowerCase() : '';
+
+  // Mostrar/ocultar botón limpiar búsqueda
+  var btnClear = document.getElementById('btn-clear-search');
+  if (btnClear) btnClear.style.display = searchQ ? 'block' : 'none';
+  if (searchEl) searchEl.style.borderColor = searchQ ? 'var(--accent)' : 'var(--border)';
 
   var total    = annotations.length;
   var visible  = 0;
@@ -4581,10 +4648,23 @@ function applyFilters() {
   annotations.forEach(function(a) {
     var show = true;
 
-    // Aplicar filtros
+    // Aplicar filtros de select
     if (_activeFilters.tipo && a.type !== _activeFilters.tipo) show = false;
     if (_activeFilters.sev  !== '' && (a.severidad === null || a.severidad === undefined || String(a.severidad) !== _activeFilters.sev)) show = false;
     if (_activeFilters.comp && (a.componente || '') !== _activeFilters.comp) show = false;
+
+    // Aplicar búsqueda global (código, título, notas)
+    if (show && searchQ) {
+      var haystack = [
+        (a.codigo  || '').toLowerCase(),
+        (a.title   || '').toLowerCase(),
+        (a.notes   || '').toLowerCase(),
+        (a.type    || '').toLowerCase(),
+        (a.componente || '').toLowerCase(),
+        (a.elemento   || '').toLowerCase(),
+      ].join(' ');
+      if (haystack.indexOf(searchQ) === -1) show = false;
+    }
 
     // Actualizar visibilidad en el modelo 3D
     if (a.entities) {
@@ -4618,14 +4698,35 @@ function clearFilters() {
   document.getElementById('filter-tipo').value = '';
   document.getElementById('filter-sev').value  = '';
   document.getElementById('filter-comp').value = '';
+  clearSearch();
+}
+
+function clearSearch() {
+  var el = document.getElementById('search-ann');
+  if (el) el.value = '';
+  var btn = document.getElementById('btn-clear-search');
+  if (btn) btn.style.display = 'none';
   applyFilters();
 }
 
 function getFilteredAnnotations() {
+  var searchEl = document.getElementById('search-ann');
+  var searchQ  = searchEl ? searchEl.value.trim().toLowerCase() : '';
   return annotations.filter(function(a) {
     if (_activeFilters.tipo && a.type !== _activeFilters.tipo) return false;
     if (_activeFilters.sev !== '' && (a.severidad === null || a.severidad === undefined || String(a.severidad) !== _activeFilters.sev)) return false;
     if (_activeFilters.comp && (a.componente || '') !== _activeFilters.comp) return false;
+    if (searchQ) {
+      var haystack = [
+        (a.codigo||'').toLowerCase(),
+        (a.title||'').toLowerCase(),
+        (a.notes||'').toLowerCase(),
+        (a.type||'').toLowerCase(),
+        (a.componente||'').toLowerCase(),
+        (a.elemento||'').toLowerCase(),
+      ].join(' ');
+      if (haystack.indexOf(searchQ) === -1) return false;
+    }
     return true;
   });
 }
@@ -4653,6 +4754,19 @@ function toggleAllAnnotations() {
     }
   });
   showToast(_allAnnotationsVisible ? 'Anotaciones visibles' : 'Anotaciones ocultas');
+}
+
+function toggleAnnVisibility(idx) {
+  var ann = annotations[idx];
+  if (!ann) return;
+  ann.visible = ann.visible === false ? true : false;
+  var show = ann.visible !== false;
+  if (ann.entities) {
+    ann.entities.forEach(function(e) {
+      if (e) try { e.show = show; } catch(ex) {}
+    });
+  }
+  renderAnnotationList();
 }
 
 function toggleAnnDetail(id) {
@@ -4776,6 +4890,7 @@ function importAnnotations(event) {
           var sev     = (a.severidad !== undefined && a.severidad !== null) ? a.severidad : null;
           var comp    = a.componente || null;
           var elem    = a.elemento   || null;
+          var codigo  = a.codigo     || null;
 
           if (a.geometria === 'point' || a.geom === 'point') {
             var v = verts[0] || a.coordenadas || a.coords || {};
@@ -4785,6 +4900,7 @@ function importAnnotations(event) {
               last.severidad  = sev;
               last.componente = comp;
               last.elemento   = elem;
+              last.codigo     = codigo;
               if (a.foto) { last.foto = a.foto; last.fotoNombre = a.foto_nombre || ''; }
               count++;
             }
@@ -4795,6 +4911,7 @@ function importAnnotations(event) {
               last.severidad  = sev;
               last.componente = comp;
               last.elemento   = elem;
+              last.codigo     = codigo;
               if (a.foto) { last.foto = a.foto; last.fotoNombre = a.foto_nombre || ''; }
               count++;
             }
@@ -4805,11 +4922,14 @@ function importAnnotations(event) {
               last.severidad  = sev;
               last.componente = comp;
               last.elemento   = elem;
+              last.codigo     = codigo;
               if (a.foto) { last.foto = a.foto; last.fotoNombre = a.foto_nombre || ''; }
               count++;
             }
           }
         });
+        // Reconstruir contadores para que nuevas anotaciones no repitan códigos
+        rebuildCounters();
       } else {
         showToast('Formato no reconocido — usa GeoJSON o JSON de INSPECTWIN');
         return;
@@ -5067,6 +5187,7 @@ function exportAsJSON() {
   var clean = annotations.map(function(a) {
     return {
       id:          a.id,
+      codigo:      a.codigo || null,
       titulo:      a.title,
       tipo:        a.type,
       severidad:   a.severidad !== undefined ? a.severidad : null,
