@@ -933,6 +933,25 @@
     margin-bottom: 6px;
   }
   .es-sub { font-size: 11px; color: var(--text-dim); opacity: 0.6; letter-spacing: 1px; }
+
+  /* ── MODAL AYUDA MODO CLARO ─────────────────────────────── */
+  body.light-mode #help-modal > div { background:#fff !important; border-color:#c5d4e8 !important; }
+  body.light-mode #help-modal .help-tabs { background:#f0f4f8 !important; border-bottom-color:#c5d4e8 !important; }
+  body.light-mode #help-modal .help-tab { color:#6b7a92 !important; }
+  body.light-mode #help-modal .help-tab:hover { color:#1a2336 !important; }
+  body.light-mode #help-modal .help-tab-active { color:#0080aa !important; border-bottom-color:#0080aa !important; }
+  body.light-mode #help-modal h3 { color:#0080aa !important; border-bottom-color:rgba(0,128,170,0.2) !important; }
+  body.light-mode #help-modal h4 { color:#0067a3 !important; }
+  body.light-mode #help-modal p, body.light-mode #help-modal li { color:#2a3a52 !important; }
+  body.light-mode #help-modal strong { color:#1a2336 !important; }
+  body.light-mode #help-modal em { color:#6b7a92 !important; }
+  body.light-mode #help-modal code { background:rgba(0,128,170,0.08) !important; border-color:rgba(0,128,170,0.2) !important; color:#0080aa !important; }
+  body.light-mode .help-table th { background:rgba(0,128,170,0.08) !important; color:#0080aa !important; border-color:#c5d4e8 !important; }
+  body.light-mode .help-table td { color:#2a3a52 !important; border-color:#dce5f0 !important; }
+  body.light-mode .help-table tr:nth-child(even) td { background:#f5f8fc !important; }
+  body.light-mode .help-tip { background:rgba(240,165,0,0.08) !important; border-left-color:#f0a500 !important; color:#4a5568 !important; }
+  body.light-mode #help-modal-title { color:#0080aa !important; }
+  body.light-mode #help-modal .help-content { background:#fff; }
 </style>
 </head>
 <body>
@@ -1003,6 +1022,19 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
       Reporte
     </button>
+    <div style="flex:1;"></div>
+    <div style="width:1px;height:24px;background:var(--border);margin:0 6px;align-self:center;"></div>
+    <button class="tool-btn" id="btn-help" onclick="showHelp()" title="Ayuda / Help"
+      style="font-family:var(--text-cond);letter-spacing:1px;font-size:15px;font-weight:bold;border-radius:50%;width:28px;height:28px;padding:0;">?</button>
+    <button class="tool-btn" id="btn-info" onclick="showInfo()" title="Acerca de / About INSPECTWIN"
+      style="font-family:var(--text-cond);letter-spacing:1px;font-size:15px;font-weight:bold;">ℹ</button>
+    <button class="tool-btn" id="btn-lang" onclick="toggleLang()" title="Change language / Cambiar idioma"
+      style="font-family:var(--text-cond);letter-spacing:1px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16">
+        <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/>
+      </svg>
+      <span id="lang-label">ES</span>
+    </button>
     <button class="tool-btn" id="btn-theme" onclick="toggleTheme()" title="Alternar modo claro/oscuro">
       <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
@@ -1032,7 +1064,7 @@
   <!-- LEFT PANEL -->
   <div id="panel-left">
     <div class="panel-section">
-      <div class="panel-label">Modelos <span id="model-count" style="color:var(--accent)">0</span></div>
+      <div class="panel-label" id="lbl-models">Modelos <span id="model-count" style="color:var(--accent)">0</span></div>
 
       <!-- Lista de modelos cargados -->
       <div id="models-list" style="margin-bottom:8px;"></div>
@@ -1045,7 +1077,7 @@
             <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
           </svg>
         </div>
-        <div class="dz-title">+ AGREGAR MODELO</div>
+        <div class="dz-title" id="dz-title-text">+ AGREGAR MODELO</div>
         <div class="dz-sub">tileset.json · .3tz · .zip · .glb</div>
       </div>
 
@@ -1068,7 +1100,7 @@
 
     <div class="panel-section" style="flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;">
       <div class="panel-label" style="flex-shrink:0;display:flex;justify-content:space-between;align-items:center;">
-        <span>Anotaciones <span id="ann-count" style="color:var(--accent)">0</span><span id="ann-filter-count" style="color:var(--text-dim);font-size:10px;"></span></span>
+        <span id="lbl-annotations">Anotaciones</span> <span id="ann-count" style="color:var(--accent)">0</span><span id="ann-filter-count" style="color:var(--text-dim);font-size:10px;"></span></span>
         <button id="btn-ann-visibility" onclick="toggleAllAnnotations()" title="Mostrar/ocultar todas las anotaciones"
           style="background:transparent;border:none;color:var(--accent);cursor:pointer;padding:2px;display:flex;align-items:center;">
           <svg id="ann-eye-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
@@ -1084,15 +1116,15 @@
             <span style="position:absolute;left:7px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:11px;pointer-events:none;">🔍</span>
             <input type="text" id="search-ann" placeholder="Buscar código, título, notas..."
               oninput="applyFilters()"
-              style="width:100%;box-sizing:border-box;padding:4px 6px 4px 24px;
+              style="width:100%;box-sizing:border-box;padding:5px 6px 5px 24px;
               background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:2px;
-              color:var(--text);font-family:var(--text-mono);font-size:10px;">
+              color:var(--text);font-family:var(--text-mono);font-size:12px;">
           </div>
           <button onclick="clearSearch()" id="btn-clear-search" title="Limpiar búsqueda"
             style="display:none;background:transparent;border:1px solid var(--accent);
             color:var(--accent);border-radius:2px;padding:0 6px;cursor:pointer;font-size:11px;flex-shrink:0;">✕</button>
         </div>
-        <select id="filter-tipo" onchange="applyFilters()" style="width:100%;margin-bottom:3px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:2px;color:var(--text-dim);font-family:var(--text-cond);font-size:10px;padding:3px 4px;">
+        <select id="filter-tipo" onchange="applyFilters()" style="width:100%;margin-bottom:3px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:2px;color:var(--text-dim);font-family:var(--text-cond);font-size:12px;padding:4px 5px;">
           <option value="">— Todos los tipos —</option>
           <option value="fisura">Fisura</option>
           <option value="crack">Grieta</option>
@@ -1114,7 +1146,7 @@
           <option value="other">Otro</option>
         </select>
         <div style="display:flex;gap:3px;">
-          <select id="filter-sev" onchange="applyFilters()" style="flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:2px;color:var(--text-dim);font-family:var(--text-cond);font-size:10px;padding:3px 4px;">
+          <select id="filter-sev" onchange="applyFilters()" style="flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:2px;color:var(--text-dim);font-family:var(--text-cond);font-size:12px;padding:4px 5px;">
             <option value="">— Severidad —</option>
             <option value="0">0 — Sin daño</option>
             <option value="1">1 — Muy leve</option>
@@ -1123,7 +1155,7 @@
             <option value="4">4 — Severo</option>
             <option value="5">5 — Muy severo</option>
           </select>
-          <select id="filter-comp" onchange="applyFilters()" style="flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:2px;color:var(--text-dim);font-family:var(--text-cond);font-size:10px;padding:3px 4px;">
+          <select id="filter-comp" onchange="applyFilters()" style="flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:2px;color:var(--text-dim);font-family:var(--text-cond);font-size:12px;padding:4px 5px;">
             <option value="">— Componente —</option>
             <option value="Superficie de rodadura">Sup. rodadura</option>
             <option value="Superestructura">Superestructura</option>
@@ -1133,7 +1165,7 @@
           </select>
           <button onclick="clearFilters()" title="Limpiar filtros"
             style="background:transparent;border:1px solid var(--border);color:var(--text-dim);
-            border-radius:2px;padding:0 6px;cursor:pointer;font-size:11px;flex-shrink:0;">✕</button>
+            border-radius:2px;padding:0 7px;cursor:pointer;font-size:12px;flex-shrink:0;">✕</button>
         </div>
       </div>
       <div id="annotations-list" style="flex:1;overflow-y:auto;min-height:0;"></div>
@@ -1141,11 +1173,11 @@
 
     <div class="panel-section" style="margin-top:auto; border-top: 1px solid var(--border); border-bottom:none;">
       <div style="display:flex;gap:5px;margin-bottom:5px;">
-        <button class="btn-secondary" style="flex:1;" onclick="document.getElementById('import-input').click()">↑ IMPORTAR</button>
+        <button class="btn-secondary" id="btn-import-ann" style="flex:1;" onclick="document.getElementById('import-input').click()">↑ IMPORTAR</button>
         <input type="file" id="import-input" accept=".geojson,.json" style="display:none;" onchange="importAnnotations(event)">
       </div>
       <div style="position:relative;">
-      <button class="btn-secondary" onclick="exportAnnotations()" style="width:100%;">↓ EXPORTAR ANOTACIONES</button>
+      <button class="btn-secondary" id="btn-export-ann" onclick="exportAnnotations()" style="width:100%;">↓ EXPORTAR ANOTACIONES</button>
       <div id="export-menu" style="display:none;position:absolute;bottom:36px;left:0;right:0;
         background:var(--panel);border:1px solid var(--border);border-radius:3px;z-index:100;overflow:hidden;">
         <button onclick="exportAsGeoJSON()" style="width:100%;background:transparent;border:none;border-bottom:1px solid var(--border);
@@ -1183,7 +1215,7 @@
       background:rgba(10,12,15,0.95);border:1px solid var(--border);border-radius:4px;
       padding:12px;backdrop-filter:blur(6px);">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span style="font-family:var(--text-cond);font-size:11px;letter-spacing:2px;color:var(--accent);">PERFIL TOPOGRÁFICO</span>
+        <span style="font-family:var(--text-cond);font-size:11px;letter-spacing:2px;color:var(--accent);" id="lbl-profile-title">PERFIL TOPOGRÁFICO</span>
         <div style="display:flex;gap:6px;">
           <button onclick="exportProfileCSV()" style="background:transparent;border:1px solid var(--border);color:var(--text-dim);font-family:var(--text-cond);font-size:9px;letter-spacing:1px;padding:3px 7px;border-radius:2px;cursor:pointer;">↓ CSV</button>
           <button onclick="closeProfile()" style="background:transparent;border:1px solid var(--border);color:var(--text-dim);font-family:var(--text-cond);font-size:9px;padding:3px 7px;border-radius:2px;cursor:pointer;">✕</button>
@@ -1221,18 +1253,18 @@
       <div class="section-body" id="sec-viz-body">
 
       <div class="ctrl-row">
-        <label>Brillo <span id="bright-val">1.0</span></label>
+        <label id="lbl-brightness">Brillo <span id="bright-val">1.0</span></label>
         <input type="range" min="0.3" max="3" step="0.05" value="1" oninput="setBrightness(this.value)">
       </div>
       <div class="ctrl-row">
-        <label>Contraste <span id="contrast-val">1.0</span></label>
+        <label id="lbl-contrast">Contraste <span id="contrast-val">1.0</span></label>
         <input type="range" min="0.5" max="2" step="0.05" value="1" oninput="setContrast(this.value)">
       </div>
       <div class="ctrl-row">
         <label style="justify-content:space-between;width:100%;">
           <span style="color:var(--accent);font-size:9px;letter-spacing:1px;">DETALLE</span>
           <span id="sse-val">16</span>
-          <span style="color:var(--text-dim);font-size:9px;letter-spacing:1px;">VELOCIDAD</span>
+          <span style="color:var(--text-dim);font-size:9px;letter-spacing:1px;" id="lbl-speed">VELOCIDAD</span>
         </label>
         <input type="range" min="2" max="64" step="1" value="16" oninput="setSSE(this.value)"
           title="Izquierda = más detalle / Derecha = más velocidad">
@@ -1242,12 +1274,9 @@
         <span class="toggle-label">Wireframe</span>
         <div class="toggle" id="toggle-wire" onclick="toggleWireframe(this)"></div>
       </div>
-      <div class="toggle-row">
-        <span class="toggle-label">Sombras</span>
-        <div class="toggle on" id="toggle-shadow" onclick="toggleShadow(this)"></div>
-      </div>
+
       <div class="ctrl-row" style="margin-top:8px;">
-        <label>Mapa base <span id="basemap-val" style="color:var(--accent)">OFF</span></label>
+        <label><span id="lbl-basemap">Mapa base</span> <span id="basemap-val" style="color:var(--accent)">OFF</span></label>
         <div style="display:flex;gap:6px;margin-top:6px;">
           <button onclick="setBasemap('none')"      id="bm-none" class="bm-btn bm-active">OFF</button>
           <button onclick="setBasemap('satellite')" id="bm-sat"  class="bm-btn">SAT</button>
@@ -1273,7 +1302,7 @@
       <div class="panel-label" id="sec-clip-lbl" onclick="toggleSection('sec-clip')">Plano de Corte<span class="chevron">&#9660;</span></div>
       <div class="section-body" id="sec-clip-body">
       <div class="ctrl-row">
-        <label>Eje <span id="clip-axis-val">Z</span></label>
+        <label><span id="lbl-clip-axis">Eje</span> <span id="clip-axis-val">Z</span></label>
         <select class="ann-input" id="clip-axis" onchange="updateClipAxis(this.value)">
           <option value="Z">Z (Horizontal)</option>
           <option value="X">X (Longitudinal)</option>
@@ -1281,7 +1310,7 @@
         </select>
       </div>
       <div class="ctrl-row">
-        <label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:6px;">POSICIÓN</label>
+        <label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:6px;" id="lbl-clip-pos">POSICIÓN</label>
         <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin-bottom:6px;">
           <button onclick="stepClip(-1)" title="-1m" style="background:transparent;border:1px solid var(--border);color:var(--text-dim);width:24px;height:24px;border-radius:2px;cursor:pointer;font-size:13px;padding:0;line-height:1;flex-shrink:0;">&#8722;</button>
           <button onclick="stepClip(-0.1)" title="-0.1m" style="background:transparent;border:1px solid var(--border);color:var(--accent);width:24px;height:24px;border-radius:2px;cursor:pointer;font-size:11px;padding:0;line-height:1;flex-shrink:0;">&#9660;</button>
@@ -1318,7 +1347,7 @@
       <!-- Resultado distancia -->
       <div id="measure-result">
         <div class="mval" id="measure-val">0.00</div>
-        <div class="munit">METROS</div>
+        <div class="munit" id="lbl-munit">METROS</div>
       </div>
 
       <!-- Resultado área -->
@@ -1352,37 +1381,37 @@
             <span id="pt-n" style="color:#ffd166;">—</span>
           </div>
           <div style="display:flex;justify-content:space-between;">
-            <span style="color:var(--text-dim);letter-spacing:1px;">ZONA</span>
+            <span style="color:var(--text-dim);letter-spacing:1px;" id="lbl-pt-zone">ZONA</span>
             <span id="pt-zone" style="color:#ffd166;">—</span>
           </div>
         </div>
-        <button class="btn-secondary" onclick="copyPointCoords()" style="margin-top:6px;width:100%;">⎘ COPIAR COORDENADAS</button>
+        <button class="btn-secondary" id="btn-copy-coords" onclick="copyPointCoords()" style="margin-top:6px;width:100%;">⎘ COPIAR COORDENADAS</button>
       </div>
 
       <!-- Resultado ángulo -->
       <div id="angle-result" style="display:none;margin-bottom:8px;">
         <div style="font-family:var(--text-mono);font-size:11px;line-height:2;color:var(--text);">
           <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:3px;margin-bottom:3px;">
-            <span style="color:var(--text-dim);letter-spacing:1px;">INCLINACIÓN</span>
+            <span style="color:var(--text-dim);letter-spacing:1px;" id="lbl-ang-incl">INCLINACIÓN</span>
             <span id="ang-incl" style="color:var(--accent);font-size:15px;font-weight:bold;">—</span>
           </div>
           <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:3px;margin-bottom:3px;">
-            <span style="color:var(--text-dim);letter-spacing:1px;">AZIMUT</span>
+            <span style="color:var(--text-dim);letter-spacing:1px;" id="lbl-ang-azim">AZIMUT</span>
             <span id="ang-azim" style="color:var(--accent);">—</span>
           </div>
           <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:3px;margin-bottom:3px;">
-            <span style="color:var(--text-dim);letter-spacing:1px;">PENDIENTE</span>
+            <span style="color:var(--text-dim);letter-spacing:1px;" id="lbl-ang-pend">PENDIENTE</span>
             <span id="ang-pend" style="color:#ffd166;">—</span>
           </div>
           <div style="display:flex;justify-content:space-between;">
-            <span style="color:var(--text-dim);letter-spacing:1px;">DIRECCIÓN</span>
+            <span style="color:var(--text-dim);letter-spacing:1px;" id="lbl-ang-dir">DIRECCIÓN</span>
             <span id="ang-dir" style="color:#ffd166;">—</span>
           </div>
         </div>
         <div id="ang-pts-info" style="font-size:10px;color:var(--text-dim);margin-top:6px;text-align:center;"></div>
       </div>
 
-      <button class="btn-secondary" onclick="clearMeasure()" style="margin-bottom:6px;">✕ LIMPIAR</button>
+      <button class="btn-secondary" id="btn-clear-measure" onclick="clearMeasure()" style="margin-bottom:6px;">✕ LIMPIAR</button>
       <button class="btn-secondary" id="btn-close-poly" style="display:none;" onclick="closePolygon()">⬡ CERRAR POLÍGONO</button>
       </div><!-- /sec-medir-body -->
     </div>
@@ -1439,7 +1468,7 @@
           <option value="">— Elemento —</option>
         </select>
         <div id="ann-hint" style="font-size:10px;color:var(--accent);margin-bottom:6px;text-align:center;line-height:1.5;">
-          Haz clic en el modelo para posicionar
+          <span id="ann-hint-text-default">Haz clic en el modelo para posicionar</span>
         </div>
         <button class="btn-primary"   id="ann-btn-add"    onclick="addAnnotationFromForm()" style="margin-bottom:4px;">+ AÑADIR PUNTO</button>
         <button class="btn-secondary" id="ann-btn-finish" onclick="_annGeom==='profile'?generateProfile():_annGeom==='polygon'?finishPolyAnn():finishLineAnn()" style="display:none;margin-bottom:4px;">&#10003; GUARDAR</button>
@@ -1658,16 +1687,33 @@ var TYPE_LABELS = {
   pintura:'Pintura', erosion:'Erosión', asolve:'Asolve', vegetacion:'Vegetación',
   anclajes:'Anclajes', impactos:'Impactos', vandalismo:'Vandalismo', other:'Otro',
 };
+function getTypeLabel(type) {
+  return t('type_' + type) || TYPE_LABELS[type] || type;
+}
 var SEV_LABELS2 = ['Sin daño','Muy leve','Leve','Moderado','Severo','Muy severo'];
+function getSevLabels() {
+  return [
+    t('sev_0').split(' — ')[1]||'Sin daño',
+    t('sev_1').split(' — ')[1]||'Muy leve',
+    t('sev_2').split(' — ')[1]||'Leve',
+    t('sev_3').split(' — ')[1]||'Moderado',
+    t('sev_4').split(' — ')[1]||'Severo',
+    t('sev_5').split(' — ')[1]||'Muy severo',
+  ];
+}
 var SEV_COLORS2 = ['#636e72','#00b894','#fdcb6e','#e17055','#d63031','#6c5ce7'];
 
 function showSummary() {
   var modal = document.getElementById('summary-modal');
   modal.style.display = 'flex';
+  // Recalcular labels según idioma activo
+  SEV_LABELS2 = getSevLabels();
+  var sumTitle = document.getElementById('lbl-summary-title');
+  if (sumTitle) sumTitle.textContent = t('summary_title');
 
   // Fecha
   document.getElementById('sum-fecha').textContent =
-    'Generado: ' + new Date().toLocaleString('es-MX');
+    t('sum_generated') + ' ' + new Date().toLocaleString(_lang==='en'?'en-US':'es-MX');
 
   var total = annotations.length;
   var nPuntos   = annotations.filter(function(a){ return a.geom==='point'; }).length;
@@ -1684,10 +1730,10 @@ function showSummary() {
       +'</div>';
   };
   document.getElementById('sum-totales').innerHTML =
-    totCard(total, 'TOTAL', 'var(--accent)') +
-    totCard(nPuntos, 'PUNTOS', '#c8d6e5') +
-    totCard(nLineas, 'LÍNEAS', '#ffd166') +
-    totCard(nPoligonos, 'ÁREAS', '#00b894');
+    totCard(total,      t('sum_total'),  'var(--accent)') +
+    totCard(nPuntos,    t('sum_points'), '#c8d6e5') +
+    totCard(nLineas,    t('sum_lines'),  '#ffd166') +
+    totCard(nPoligonos, t('sum_areas'),  '#00b894');
 
   // Por tipo de deterioro
   var tipoCount = {};
@@ -1700,14 +1746,14 @@ function showSummary() {
         var col = _ANN_COLORS[t] || '#c8d6e5';
         return '<div style="margin-bottom:7px;">'
           +'<div style="display:flex;justify-content:space-between;margin-bottom:3px;">'
-            +'<span style="font-family:var(--text-cond);font-size:11px;color:var(--text);">'+(TYPE_LABELS[t]||t)+'</span>'
+            +'<span style="font-family:var(--text-cond);font-size:11px;color:var(--text);">'+(getTypeLabel(t))+'</span>'
             +'<span style="font-family:var(--text-mono);font-size:11px;color:'+col+';">'+tipoCount[t]+'</span>'
           +'</div>'
           +'<div style="background:rgba(255,255,255,0.05);border-radius:2px;height:5px;">'
             +'<div style="background:'+col+';width:'+pct+'%;height:5px;border-radius:2px;transition:width 0.4s;"></div>'
           +'</div></div>';
       }).join('')
-    : '<div style="color:var(--text-dim);font-size:11px;">Sin anotaciones</div>';
+      : '<div style="color:var(--text-dim);font-size:11px;">'+t('sum_no_ann')+'</div>';
 
   // Por severidad
   var sevCount = {};
@@ -1732,9 +1778,9 @@ function showSummary() {
       +'</div></div>';
   }
   if (sevCount['nd']) {
-    sevRows += '<div style="font-family:var(--text-cond);font-size:10px;color:var(--text-dim);margin-top:4px;">Sin clasificar: '+sevCount['nd']+'</div>';
+    sevRows += '<div style="font-family:var(--text-cond);font-size:10px;color:var(--text-dim);margin-top:4px;">'+(_lang==='en'?'Unclassified':'Sin clasificar')+': '+sevCount['nd']+'</div>';
   }
-  document.getElementById('sum-severidad').innerHTML = sevRows || '<div style="color:var(--text-dim);font-size:11px;">Sin datos de severidad</div>';
+  document.getElementById('sum-severidad').innerHTML = sevRows || '<div style="color:var(--text-dim);font-size:11px;">'+t('sum_no_sev')+'</div>';
 
   // Métricas
   var totalLong = 0, nConLong = 0;
@@ -1751,15 +1797,15 @@ function showSummary() {
       +'</div>';
   };
   document.getElementById('sum-metricas').innerHTML =
-    metRow('Longitud total de líneas', nConLong ? totalLong.toFixed(2)+' m' : '—') +
-    metRow('Longitud promedio por línea', nConLong ? (totalLong/nConLong).toFixed(2)+' m' : '—') +
-    metRow('Área total de polígonos', aFmtTotal ? aFmtTotal.val+' '+aFmtTotal.unit : '—', '#00b894') +
-    metRow('Anotaciones con foto', nFotos > 0 ? nFotos+' de '+total : '0', '#ffd166') +
-    metRow('Sin severidad clasificada', nSinSev > 0 ? nSinSev+' de '+total : '✓ Todas clasificadas', nSinSev?'#e17055':'#00b894');
+    metRow(t('sum_total_length'), nConLong ? totalLong.toFixed(2)+' m' : '—') +
+    metRow(t('sum_avg_length'), nConLong ? (totalLong/nConLong).toFixed(2)+' m' : '—') +
+    metRow(t('sum_total_area'), aFmtTotal ? aFmtTotal.val+' '+aFmtTotal.unit : '—', '#00b894') +
+    metRow(t('sum_photos'), nFotos > 0 ? nFotos+' de '+total : '0', '#ffd166') +
+    metRow(t('sum_no_sev_class'), nSinSev > 0 ? nSinSev+' de '+total : t('sum_all_class'), nSinSev?'#e17055':'#00b894');
 
   // ── POR COMPONENTE Y ELEMENTO ──
   var SEV_COLORS_SUM = ['#636e72','#00b894','#fdcb6e','#e17055','#d63031','#6c5ce7'];
-  var SEV_LABELS_SUM = ['Sin daño','Muy leve','Leve','Moderado','Severo','Muy severo'];
+  var SEV_LABELS_SUM = getSevLabels();
   var GEOM_ICON = { point:'●', line:'╌', polygon:'⬡' };
 
   // Agrupar por componente → elemento → anotaciones
@@ -1772,7 +1818,7 @@ function showSummary() {
     compMap[comp][elem].push(a);
   });
 
-  var compOrder = Object.keys(BRIDGE_COMPONENTS).concat(['__sin_componente__']);
+  var compOrder = Object.keys(BRIDGE_COMPONENTS_ES).concat(['__sin_componente__']);
   var compHtml = '';
   var compIdx = 0;
 
@@ -1780,7 +1826,7 @@ function showSummary() {
     if (!compMap[comp]) return;
     var elemMap = compMap[comp];
     var totalComp = Object.values(elemMap).reduce(function(s,arr){ return s+arr.length; }, 0);
-    var compLabel = comp === '__sin_componente__' ? 'Sin componente asignado' : comp;
+    var compLabel = comp === '__sin_componente__' ? (_lang==='en'?'No component assigned':'Sin componente asignado') : displayComp(comp);
     var cid = compIdx++;
 
     compHtml += '<div class="sum-comp-header" onclick="toggleSumComp('+cid+')">'
@@ -1794,7 +1840,7 @@ function showSummary() {
 
     Object.keys(elemMap).forEach(function(elem) {
       var anns = elemMap[elem];
-      var elemLabel = elem === '__sin_elemento__' ? 'Sin elemento' : elem;
+      var elemLabel = elem === '__sin_elemento__' ? (_lang==='en'?'No element':'Sin elemento') : displayElem(elem);
       compHtml += '<div class="sum-elem-row">'
         +'<div class="sum-elem-title">'+elemLabel+' ('+anns.length+')</div>';
 
@@ -1802,7 +1848,7 @@ function showSummary() {
         var col = _ANN_COLORS[a.type] || '#c8d6e5';
         var sevBg = (a.severidad !== null && a.severidad !== undefined) ? SEV_COLORS_SUM[a.severidad] : '#444';
         var sevTxt = (a.severidad !== null && a.severidad !== undefined) ? a.severidad+' '+SEV_LABELS_SUM[a.severidad] : '—';
-        var typeLbl = TYPE_LABELS[a.type] || a.type;
+        var typeLbl = getTypeLabel(a.type);
         var geomIco = GEOM_ICON[a.geom] || '●';
         compHtml += '<div class="sum-ann-row">'
           +'<span class="sum-ann-dot" style="background:'+col+';"></span>'
@@ -1915,6 +1961,346 @@ function printReport() {
   setTimeout(function(){ win.print(); }, 500);
 }
 
+function showHelp() {
+  document.getElementById('help-modal').style.display = 'flex';
+  switchHelpTab(1);
+  // Actualizar idioma del manual
+  var title = document.getElementById('help-modal-title');
+  if (title) title.textContent = t('help_title');
+  updateHelpTabs();
+}
+function closeHelp() {
+  document.getElementById('help-modal').style.display = 'none';
+}
+function switchHelpTab(n) {
+  for (var i = 1; i <= 6; i++) {
+    var tab  = document.getElementById('htab-' + i);
+    var cont = document.getElementById('hcont-' + i);
+    if (tab)  tab.classList.toggle('help-tab-active', i === n);
+    if (cont) cont.style.display = (i === n) ? 'block' : 'none';
+  }
+}
+function updateHelpTabs() {
+  var keys = ['help_tab1','help_tab2','help_tab3','help_tab4','help_tab5','help_tab6'];
+  keys.forEach(function(k, i) {
+    var el = document.getElementById('htab-' + (i+1));
+    if (el) el.textContent = t(k);
+  });
+  // Regenerar contenido según idioma
+  renderHelpContent();
+}
+function renderHelpContent() {
+  var es = _lang !== 'en';
+  // Tab 1 — Inicio rápido / Quick start
+  document.getElementById('hcont-1').innerHTML = es ? `
+    <h3>Inicio rápido</h3>
+    <ol>
+      <li><strong>Cargar modelo 3D</strong> — Arrastra un archivo <code>.3tz</code>, <code>.zip</code>, <code>.glb</code> o <code>tileset.json</code> al área de carga del panel izquierdo, o haz clic en <em>+ AGREGAR MODELO</em>. El modelo debe estar georreferenciado en <strong>WGS84</strong>.</li>
+      <li><strong>Explorar el modelo</strong> — Usa el ratón para orbitar, hacer zoom y desplazarte. El modelo se centrará automáticamente al cargarse.</li>
+      <li><strong>Anotar deterioros</strong> — Activa el modo <em>ANOTAR</em>, elige la geometría (punto, línea o área), haz clic sobre el modelo y completa los campos del formulario.</li>
+      <li><strong>Medir</strong> — Activa el modo <em>MEDIR</em> y selecciona el tipo de medición: distancia, área, punto, ángulo o perfil.</li>
+      <li><strong>Exportar</strong> — Guarda tus anotaciones en formato JSON (INSPECTWIN), GeoJSON o CSV desde el botón <em>↓ EXPORTAR</em>.</li>
+      <li><strong>Generar reporte</strong> — Haz clic en <em>REPORTE</em>, llena los datos del puente y descarga el PDF.</li>
+    </ol>
+    <div class="help-tip">💡 El archivo HTML es completamente autónomo — no requiere instalación ni conexión a internet (excepto para el mapa base).</div>
+  ` : `
+    <h3>Quick start</h3>
+    <ol>
+      <li><strong>Load a 3D model</strong> — Drag a <code>.3tz</code>, <code>.zip</code>, <code>.glb</code> or <code>tileset.json</code> file onto the left panel drop zone, or click <em>+ ADD MODEL</em>. The model must be georeferenced in <strong>WGS84</strong>.</li>
+      <li><strong>Explore the model</strong> — Use the mouse to orbit, zoom and pan. The model will be centered automatically on load.</li>
+      <li><strong>Annotate deteriorations</strong> — Activate <em>ANNOTATE</em> mode, choose the geometry (point, line or area), click on the model and complete the form fields.</li>
+      <li><strong>Measure</strong> — Activate <em>MEASURE</em> mode and select the measurement type: distance, area, point, angle or profile.</li>
+      <li><strong>Export</strong> — Save your annotations in JSON (INSPECTWIN), GeoJSON or CSV format using the <em>↓ EXPORT</em> button.</li>
+      <li><strong>Generate report</strong> — Click <em>REPORT</em>, fill in the bridge data and download the PDF.</li>
+    </ol>
+    <div class="help-tip">💡 The HTML file is fully standalone — no installation or internet connection required (except for the base map).</div>
+  `;
+
+  // Tab 2 — Modelos 3D
+  document.getElementById('hcont-2').innerHTML = es ? `
+    <h3>Modelos 3D compatibles</h3>
+    <table class="help-table">
+      <tr><th>Formato</th><th>Descripción</th><th>Compatibilidad</th></tr>
+      <tr><td><code>.3tz</code></td><td>3D Tiles comprimido (Metashape 2.2+)</td><td>✅ Óptimo</td></tr>
+      <tr><td><code>.zip</code></td><td>3D Tiles empaquetado (Metashape 2.0–2.1)</td><td>✅ Completo</td></tr>
+      <tr><td><code>tileset.json</code></td><td>3D Tiles estándar (carpeta)</td><td>✅ Completo</td></tr>
+      <tr><td><code>.glb / .gltf</code></td><td>Modelo GLTF binario o estándar</td><td>⚠️ Sin LOD</td></tr>
+    </table>
+    <h3>Programas exportadores</h3>
+    <table class="help-table">
+      <tr><th>Programa</th><th>Formato de salida</th><th>Notas</th></tr>
+      <tr><td>Agisoft Metashape 2.2+</td><td><code>.3tz</code></td><td>Exportar como "Cesium 3D Tiles". Sistema de referencia: WGS84 + EGM96.</td></tr>
+      <tr><td>Agisoft Metashape 2.0–2.1</td><td><code>.zip</code></td><td>Comprimir la carpeta de exportación en un solo .zip.</td></tr>
+      <tr><td>Pix4D / RealityCapture</td><td><code>tileset.json</code></td><td>Exportar como 3D Tiles. Cargar el tileset.json directamente.</td></tr>
+      <tr><td>DJI Terra</td><td><code>tileset.json</code></td><td>Seleccionar salida Cesium 3D Tiles en la configuración de reconstrucción.</td></tr>
+      <tr><td>Cesium Ion</td><td>Streaming en línea</td><td>Usar la URL del asset de Cesium Ion (requiere token).</td></tr>
+    </table>
+    <h3>Sistema de referencia</h3>
+    <ul>
+      <li>El modelo debe estar en coordenadas <strong>geográficas WGS84</strong> (EPSG:4326).</li>
+      <li>La altura puede ser elipsoidal (WGS84) o sobre el geoide (EGM96/EGM2008) — Cesium acepta ambas.</li>
+      <li>Para fotogrametría con dron, usar RTK o GCPs con coordenadas WGS84 asegura la carga correcta en el visor.</li>
+      <li>Modelos en coordenadas proyectadas (UTM, etc.) <strong>no se visualizarán correctamente</strong>.</li>
+    </ul>
+    <div class="help-tip">💡 Si el modelo no aparece al cargarlo, verifica que esté en WGS84. En Metashape: <em>Herramientas → Sistema de coordenadas → WGS84</em>.</div>
+  ` : `
+    <h3>Compatible 3D model formats</h3>
+    <table class="help-table">
+      <tr><th>Format</th><th>Description</th><th>Support</th></tr>
+      <tr><td><code>.3tz</code></td><td>Compressed 3D Tiles (Metashape 2.2+)</td><td>✅ Optimal</td></tr>
+      <tr><td><code>.zip</code></td><td>Packaged 3D Tiles (Metashape 2.0–2.1)</td><td>✅ Full</td></tr>
+      <tr><td><code>tileset.json</code></td><td>Standard 3D Tiles (folder)</td><td>✅ Full</td></tr>
+      <tr><td><code>.glb / .gltf</code></td><td>Binary or standard GLTF model</td><td>⚠️ No LOD</td></tr>
+    </table>
+    <h3>Exporting software</h3>
+    <table class="help-table">
+      <tr><th>Software</th><th>Output format</th><th>Notes</th></tr>
+      <tr><td>Agisoft Metashape 2.2+</td><td><code>.3tz</code></td><td>Export as "Cesium 3D Tiles". CRS: WGS84 + EGM96.</td></tr>
+      <tr><td>Agisoft Metashape 2.0–2.1</td><td><code>.zip</code></td><td>Compress the export folder into a single .zip file.</td></tr>
+      <tr><td>Pix4D / RealityCapture</td><td><code>tileset.json</code></td><td>Export as 3D Tiles. Load the tileset.json directly.</td></tr>
+      <tr><td>DJI Terra</td><td><code>tileset.json</code></td><td>Select Cesium 3D Tiles output in reconstruction settings.</td></tr>
+      <tr><td>Cesium Ion</td><td>Online streaming</td><td>Use the Cesium Ion asset URL (requires token).</td></tr>
+    </table>
+    <h3>Coordinate reference system</h3>
+    <ul>
+      <li>The model must be in <strong>WGS84 geographic coordinates</strong> (EPSG:4326).</li>
+      <li>Height can be ellipsoidal (WGS84) or geoidal (EGM96/EGM2008) — Cesium accepts both.</li>
+      <li>For drone photogrammetry, using RTK or GCPs in WGS84 ensures correct display in the viewer.</li>
+      <li>Models in projected coordinates (UTM, etc.) <strong>will not display correctly</strong>.</li>
+    </ul>
+    <div class="help-tip">💡 If the model does not appear after loading, verify it is in WGS84. In Metashape: <em>Tools → Reference Settings → WGS84</em>.</div>
+  `;
+
+  // Tab 3 — Medición
+  document.getElementById('hcont-3').innerHTML = es ? `
+    <h3>Herramientas de medición</h3>
+    <p>Activa el modo <strong>MEDIR</strong> en la barra de navegación. Selecciona el tipo de medición y haz clic sobre el modelo.</p>
+    <table class="help-table">
+      <tr><th>Herramienta</th><th>Uso</th><th>Resultado</th></tr>
+      <tr>
+        <td><strong>DIST</strong></td>
+        <td>Haz clic en dos puntos sobre el modelo.</td>
+        <td>Distancia en metros o kilómetros con la línea dibujada en el modelo.</td>
+      </tr>
+      <tr>
+        <td><strong>ÁREA</strong></td>
+        <td>Haz clic para definir vértices del polígono. Doble clic o botón <em>Cerrar polígono</em> para finalizar.</td>
+        <td>Área en m², cm² o km² y perímetro del polígono.</td>
+      </tr>
+      <tr>
+        <td><strong>PUNTO</strong></td>
+        <td>Haz clic en cualquier punto del modelo.</td>
+        <td>Coordenadas geográficas (Lat/Lon) y UTM con zona. Botón para copiar al portapapeles.</td>
+      </tr>
+      <tr>
+        <td><strong>ÁNGULO</strong></td>
+        <td>Haz clic en 3 puntos que definan el plano de análisis.</td>
+        <td>Inclinación, azimut, pendiente (%) y dirección cardinal del plano.</td>
+      </tr>
+      <tr>
+        <td><strong>PERFIL</strong></td>
+        <td>Haz clic para agregar puntos de la traza. Doble clic para generar el perfil.</td>
+        <td>Gráfica de perfil topográfico con elevaciones. Exportable como CSV.</td>
+      </tr>
+    </table>
+    <div class="help-tip">💡 Usa el botón <em>✕ LIMPIAR</em> para borrar la medición actual y comenzar una nueva. Las mediciones son temporales y no se guardan al exportar.</div>
+  ` : `
+    <h3>Measurement tools</h3>
+    <p>Activate <strong>MEASURE</strong> mode in the navigation bar. Select the measurement type and click on the model.</p>
+    <table class="help-table">
+      <tr><th>Tool</th><th>Usage</th><th>Result</th></tr>
+      <tr>
+        <td><strong>DIST</strong></td>
+        <td>Click on two points on the model.</td>
+        <td>Distance in meters or kilometers with the line drawn on the model.</td>
+      </tr>
+      <tr>
+        <td><strong>AREA</strong></td>
+        <td>Click to define polygon vertices. Double click or <em>Close polygon</em> button to finish.</td>
+        <td>Area in m², cm² or km² and polygon perimeter.</td>
+      </tr>
+      <tr>
+        <td><strong>POINT</strong></td>
+        <td>Click on any point on the model.</td>
+        <td>Geographic coordinates (Lat/Lon) and UTM with zone. Button to copy to clipboard.</td>
+      </tr>
+      <tr>
+        <td><strong>ANGLE</strong></td>
+        <td>Click on 3 points defining the analysis plane.</td>
+        <td>Inclination, azimuth, slope (%) and cardinal direction of the plane.</td>
+      </tr>
+      <tr>
+        <td><strong>PROFILE</strong></td>
+        <td>Click to add trace points. Double click to generate the profile.</td>
+        <td>Topographic profile chart with elevations. Exportable as CSV.</td>
+      </tr>
+    </table>
+    <div class="help-tip">💡 Use the <em>✕ CLEAR</em> button to erase the current measurement and start a new one. Measurements are temporary and not saved on export.</div>
+  `;
+
+  // Tab 4 — Anotaciones
+  document.getElementById('hcont-4').innerHTML = es ? `
+    <h3>Sistema de anotaciones</h3>
+    <p>Activa el modo <strong>ANOTAR</strong>. Elige la geometría y haz clic sobre el modelo para posicionar la anotación.</p>
+    <h4>Geometrías disponibles</h4>
+    <table class="help-table">
+      <tr><th>Geometría</th><th>Uso recomendado</th></tr>
+      <tr><td>● Punto</td><td>Deterioros puntuales: baches, impactos, anclajes, focos de corrosión.</td></tr>
+      <tr><td>— Línea</td><td>Grietas, fisuras, juntas, eflorescencias lineales. Mide la longitud automáticamente.</td></tr>
+      <tr><td>⬡ Área</td><td>Zonas de desconchadura, humedad, carbonatación, erosión. Mide el área automáticamente.</td></tr>
+    </table>
+    <h4>Tipos de deterioro y códigos</h4>
+    <p>Cada anotación recibe un <strong>código automático</strong> basado en el tipo (ej. GR-001, BH-002). Los contadores son secuenciales y no se reutilizan.</p>
+    <table class="help-table">
+      <tr><th>Código</th><th>Tipo</th><th>Código</th><th>Tipo</th></tr>
+      <tr><td>FS</td><td>Fisura</td><td>SC</td><td>Socavación</td></tr>
+      <tr><td>GR</td><td>Grieta</td><td>BH</td><td>Bache</td></tr>
+      <tr><td>DC</td><td>Desconchadura</td><td>PT</td><td>Pintura</td></tr>
+      <tr><td>AE</td><td>Acero expuesto</td><td>ER</td><td>Erosión</td></tr>
+      <tr><td>CO</td><td>Corrosión</td><td>AS</td><td>Asolve</td></tr>
+      <tr><td>CB</td><td>Carbonatación</td><td>VG</td><td>Vegetación</td></tr>
+      <tr><td>HU</td><td>Humedad</td><td>AN</td><td>Anclajes</td></tr>
+      <tr><td>EF</td><td>Eflorescencias</td><td>IM</td><td>Impactos</td></tr>
+    </table>
+    <h4>Exportación e importación</h4>
+    <ul>
+      <li><strong>JSON INSPECTWIN</strong> — Formato nativo. Conserva todos los datos, fotos y vistas guardadas. Recomendado para respaldo y trabajo colaborativo.</li>
+      <li><strong>GeoJSON</strong> — Compatible con QGIS, ArcGIS y Google Earth Pro.</li>
+      <li><strong>CSV</strong> — Compatible con Excel y LibreOffice para análisis tabular.</li>
+    </ul>
+    <div class="help-tip">💡 Los datos se guardan siempre en español internamente. Al importar un JSON exportado en inglés, los componentes y elementos se convierten automáticamente.</div>
+  ` : `
+    <h3>Annotation system</h3>
+    <p>Activate <strong>ANNOTATE</strong> mode. Choose the geometry and click on the model to position the annotation.</p>
+    <h4>Available geometries</h4>
+    <table class="help-table">
+      <tr><th>Geometry</th><th>Recommended use</th></tr>
+      <tr><td>● Point</td><td>Punctual deteriorations: potholes, impacts, anchors, corrosion spots.</td></tr>
+      <tr><td>— Line</td><td>Cracks, hairline cracks, joints, linear efflorescence. Automatically measures length.</td></tr>
+      <tr><td>⬡ Area</td><td>Spalling zones, moisture, carbonation, erosion. Automatically measures area.</td></tr>
+    </table>
+    <h4>Deterioration types and codes</h4>
+    <p>Each annotation receives an <strong>automatic code</strong> based on its type (e.g. GR-001, BH-002). Counters are sequential and never reused.</p>
+    <table class="help-table">
+      <tr><th>Code</th><th>Type</th><th>Code</th><th>Type</th></tr>
+      <tr><td>FS</td><td>Hairline crack</td><td>SC</td><td>Scour</td></tr>
+      <tr><td>GR</td><td>Crack</td><td>BH</td><td>Pothole</td></tr>
+      <tr><td>DC</td><td>Spalling</td><td>PT</td><td>Paint damage</td></tr>
+      <tr><td>AE</td><td>Exposed rebar</td><td>ER</td><td>Erosion</td></tr>
+      <tr><td>CO</td><td>Corrosion</td><td>AS</td><td>Silting</td></tr>
+      <tr><td>CB</td><td>Carbonation</td><td>VG</td><td>Vegetation</td></tr>
+      <tr><td>HU</td><td>Moisture</td><td>AN</td><td>Anchors</td></tr>
+      <tr><td>EF</td><td>Efflorescence</td><td>IM</td><td>Impact damage</td></tr>
+    </table>
+    <h4>Export and import</h4>
+    <ul>
+      <li><strong>JSON INSPECTWIN</strong> — Native format. Preserves all data, photos and saved views. Recommended for backup and collaborative work.</li>
+      <li><strong>GeoJSON</strong> — Compatible with QGIS, ArcGIS and Google Earth Pro.</li>
+      <li><strong>CSV</strong> — Compatible with Excel and LibreOffice for tabular analysis.</li>
+    </ul>
+    <div class="help-tip">💡 Data is always stored internally in Spanish. When importing a JSON exported in English, components and elements are automatically converted.</div>
+  `;
+
+  // Tab 5 — Reporte
+  document.getElementById('hcont-5').innerHTML = es ? `
+    <h3>Generación de reporte PDF</h3>
+    <ol>
+      <li>Haz clic en el botón <strong>REPORTE</strong> en la barra de navegación.</li>
+      <li>Completa el formulario con los datos del puente: nombre, fecha, especialista, tipo de red, kilómetro, entidad, municipio, T.D.P.A. y año de construcción.</li>
+      <li>Haz clic en <em>▶ GENERAR REPORTE</em> para ver la vista previa.</li>
+      <li>Usa <em>↓ DESCARGAR PDF</em> para imprimir o guardar como PDF. En el diálogo de impresión, activa <strong>"Gráficos de fondo"</strong> para que aparezcan los colores de los encabezados.</li>
+    </ol>
+    <h4>Contenido del reporte</h4>
+    <table class="help-table">
+      <tr><th>Sección</th><th>Descripción</th></tr>
+      <tr><td>Datos generales</td><td>Información del puente y del levantamiento.</td></tr>
+      <tr><td>Resumen estadístico</td><td>Total de anotaciones, por tipo de deterioro y por nivel de severidad. Métricas de longitud y área.</td></tr>
+      <tr><td>Detalle por componente</td><td>Tabla de anotaciones agrupadas por componente y elemento estructural, con código, tipo, geometría, unidad, cantidad, severidad y notas.</td></tr>
+      <tr><td>Reporte fotográfico</td><td>Grid con las fotos adjuntas a las anotaciones y sus datos de deterioro.</td></tr>
+    </table>
+    <div class="help-tip">💡 El reporte se genera en el idioma activo del visor (ES/EN). Puedes cambiar el idioma antes de generarlo.</div>
+  ` : `
+    <h3>PDF report generation</h3>
+    <ol>
+      <li>Click the <strong>REPORT</strong> button in the navigation bar.</li>
+      <li>Fill in the bridge data form: name, date, specialist, network type, kilometer, state, municipality, A.A.D.T. and year of construction.</li>
+      <li>Click <em>▶ GENERATE REPORT</em> to preview the report.</li>
+      <li>Use <em>↓ DOWNLOAD PDF</em> to print or save as PDF. In the print dialog, enable <strong>"Background graphics"</strong> so section header colors appear.</li>
+    </ol>
+    <h4>Report contents</h4>
+    <table class="help-table">
+      <tr><th>Section</th><th>Description</th></tr>
+      <tr><td>General data</td><td>Bridge and survey information.</td></tr>
+      <tr><td>Statistical summary</td><td>Total annotations, by deterioration type and severity level. Length and area metrics.</td></tr>
+      <tr><td>Detail by component</td><td>Annotation table grouped by structural component and element, with code, type, geometry, unit, quantity, severity and notes.</td></tr>
+      <tr><td>Photo report</td><td>Grid with photos attached to annotations and their deterioration data.</td></tr>
+    </table>
+    <div class="help-tip">💡 The report is generated in the viewer's active language (ES/EN). You can change the language before generating it.</div>
+  `;
+
+  // Tab 6 — Navegación
+  document.getElementById('hcont-6').innerHTML = es ? `
+    <h3>Navegación 3D</h3>
+    <table class="help-table">
+      <tr><th>Acción</th><th>Ratón</th><th>Trackpad</th></tr>
+      <tr><td>Orbitar / Rotar</td><td>Clic izquierdo + arrastrar</td><td>1 dedo + arrastrar</td></tr>
+      <tr><td>Zoom</td><td>Rueda del ratón</td><td>Pellizco 2 dedos</td></tr>
+      <tr><td>Desplazar (pan)</td><td>Clic derecho + arrastrar</td><td>2 dedos + arrastrar</td></tr>
+      <tr><td>Inclinar cámara</td><td>Clic medio + arrastrar</td><td>—</td></tr>
+    </table>
+    <h4>Vistas guardadas</h4>
+    <p>Usa el botón <strong>⭐ VISTAS</strong> para guardar la cámara actual. Asigna un nombre y navega entre vistas con un clic. Las vistas se incluyen al exportar el JSON.</p>
+    <h4>Plano de corte</h4>
+    <p>Activa la sección <strong>PLANO DE CORTE</strong> en el panel derecho. Selecciona el eje (X/Y/Z) y ajusta la posición con el slider o los botones de ±0.1 m y ±1 m. Útil para inspeccionar el interior de estructuras.</p>
+    <h4>Mapa base y terreno</h4>
+    <ul>
+      <li><strong>OFF</strong> — Sin mapa base, fondo negro.</li>
+      <li><strong>SAT</strong> — Imagen satelital de Google Maps.</li>
+      <li><strong>MAP</strong> — Mapa de calles. Al activar SAT o MAP se añade terreno 3D (ArcGIS World Elevation).</li>
+    </ul>
+    <h4>Ajustes visuales</h4>
+    <ul>
+      <li><strong>Brillo / Contraste</strong> — Ajusta la apariencia del modelo fotogramétrico.</li>
+      <li><strong>Detalle</strong> — Controla el nivel de detalle del 3D Tiles (mayor = más resolución, más memoria).</li>
+      <li><strong>Wireframe</strong> — Muestra la malla del modelo sin textura.</li>
+    </ul>
+    <div class="help-tip">💡 Usa el botón <strong>CENTRAR</strong> para volver al modelo si te pierdes en el espacio 3D.</div>
+  ` : `
+    <h3>3D Navigation</h3>
+    <table class="help-table">
+      <tr><th>Action</th><th>Mouse</th><th>Trackpad</th></tr>
+      <tr><td>Orbit / Rotate</td><td>Left click + drag</td><td>1 finger + drag</td></tr>
+      <tr><td>Zoom</td><td>Scroll wheel</td><td>2 finger pinch</td></tr>
+      <tr><td>Pan</td><td>Right click + drag</td><td>2 fingers + drag</td></tr>
+      <tr><td>Tilt camera</td><td>Middle click + drag</td><td>—</td></tr>
+    </table>
+    <h4>Saved views</h4>
+    <p>Use the <strong>⭐ VIEWS</strong> button to save the current camera position. Assign a name and navigate between views with one click. Views are included when exporting the JSON.</p>
+    <h4>Clipping plane</h4>
+    <p>Activate the <strong>CLIPPING PLANE</strong> section in the right panel. Select the axis (X/Y/Z) and adjust the position with the slider or the ±0.1 m and ±1 m buttons. Useful for inspecting the interior of structures.</p>
+    <h4>Base map and terrain</h4>
+    <ul>
+      <li><strong>OFF</strong> — No base map, black background.</li>
+      <li><strong>SAT</strong> — Google Maps satellite imagery.</li>
+      <li><strong>MAP</strong> — Street map. Activating SAT or MAP adds 3D terrain (ArcGIS World Elevation).</li>
+    </ul>
+    <h4>Visual settings</h4>
+    <ul>
+      <li><strong>Brightness / Contrast</strong> — Adjusts the appearance of the photogrammetric model.</li>
+      <li><strong>Detail</strong> — Controls the 3D Tiles detail level (higher = more resolution, more memory).</li>
+      <li><strong>Wireframe</strong> — Shows the model mesh without texture.</li>
+    </ul>
+    <div class="help-tip">💡 Use the <strong>CENTER</strong> button to return to the model if you get lost in 3D space.</div>
+  `;
+}
+
+function showInfo() {
+  document.getElementById('info-modal').style.display = 'flex';
+}
+function closeInfo() {
+  document.getElementById('info-modal').style.display = 'none';
+}
+
 function closeReport() {
   document.getElementById('report-modal').style.display = 'none';
 }
@@ -1922,8 +2308,17 @@ function closeReport() {
 function generateReport() {
   var d = _bridgeData || {};
   var SEV_C = ['#636e72','#00b894','#fdcb6e','#e17055','#d63031','#6c5ce7'];
-  var SEV_L = ['Sin daño','Muy leve','Leve','Moderado','Severo','Muy severo'];
-  var GEOM_L = { point:'Punto', line:'Línea', polygon:'Área' };
+  var SEV_L = [
+    t('sev_0').split(' — ')[1]||'Sin daño',
+    t('sev_1').split(' — ')[1]||'Muy leve',
+    t('sev_2').split(' — ')[1]||'Leve',
+    t('sev_3').split(' — ')[1]||'Moderado',
+    t('sev_4').split(' — ')[1]||'Severo',
+    t('sev_5').split(' — ')[1]||'Muy severo',
+  ];
+  var GEOM_L = _lang==='en'
+    ? { point:'Point', line:'Line', polygon:'Area' }
+    : { point:'Punto', line:'Línea', polygon:'Área' };
   var total  = annotations.length;
   var nPts   = annotations.filter(function(a){ return a.geom==='point'; }).length;
   var nLin   = annotations.filter(function(a){ return a.geom==='line'; }).length;
@@ -1949,32 +2344,32 @@ function generateReport() {
     +'<div style="display:flex;justify-content:space-between;align-items:flex-start;">'
       +'<div>'
         +'<div style="font-size:20px;font-weight:bold;color:#1a3a5c;letter-spacing:1px;">INSPECTWIN</div>'
-        +'<div style="font-size:11px;color:#666;letter-spacing:2px;">REPORTE DE DETERIOROS</div>'
+        +'<div style="font-size:11px;color:#666;letter-spacing:2px;">'+t('report_title')+'</div>'
       +'</div>'
       +'<div style="text-align:right;font-size:10px;color:#666;">'
-        +'<div>Fecha del reporte: '+fechaReporte+'</div>'
-        +'<div>Anotaciones: '+total+'</div>'
+        +'<div>'+t('report_date')+' '+fechaReporte+'</div>'
+        +'<div>'+t('report_annotations')+' '+total+'</div>'
       +'</div>'
     +'</div></div>';
 
   // ── DATOS GENERALES ──
   html += '<div style="margin-bottom:20px;">'
-    +'<div style="background:#1a3a5c;color:#fff;font-weight:bold;font-size:11px;letter-spacing:2px;padding:6px 10px;margin-bottom:0;">DATOS GENERALES DEL PUENTE</div>'
+    +'<div style="background:#1a3a5c;color:#fff;font-weight:bold;font-size:11px;letter-spacing:2px;padding:6px 10px;margin-bottom:0;">'+t('report_bridge_data')+'</div>'
     +'<table style="width:100%;border-collapse:collapse;font-size:11px;">';
 
   var filas = [
-    ['Nombre del Puente', d.nombre||'—'],
-    ['Fecha del Levantamiento', fecha],
-    ['Nombre del Especialista', d.especialista||'—'],
-    ['Tipo de Red', d.red||'—'],
-    ['Tipo de Estructura', d.estructura||'—'],
-    ['Kilometraje al Centro', d.km||'—'],
-    ['Entidad Federativa', d.entidad||'—'],
-    ['Municipio', d.municipio||'—'],
-    ['Localidad', d.localidad||'—'],
-    ['Coordenadas Geográficas', d.coords||'—'],
-    ['T.D.P.A.', d.tdpa||'—'],
-    ['Año de Construcción', d.anio||'—'],
+    [t('bf_nombre'),      d.nombre||'—'],
+    [t('bf_fecha'),       fecha],
+    [t('bf_especialista'),d.especialista||'—'],
+    [t('bf_red'),         d.red||'—'],
+    [t('bf_estructura'),  d.estructura||'—'],
+    [t('bf_km'),          d.km||'—'],
+    [t('bf_entidad'),     d.entidad||'—'],
+    [t('bf_municipio'),   d.municipio||'—'],
+    [t('bf_localidad'),   d.localidad||'—'],
+    [t('bf_coords'),      d.coords||'—'],
+    [t('bf_tdpa'),        d.tdpa||'—'],
+    [t('bf_anio'),        d.anio||'—'],
   ];
   filas.forEach(function(f,i){
     var bg = i%2===0?'#f5f7fa':'#fff';
@@ -1987,10 +2382,10 @@ function generateReport() {
 
   // ── RESUMEN ESTADÍSTICO ──
   html += '<div style="margin-bottom:20px;">'
-    +'<div style="background:#1a3a5c;color:#fff;font-weight:bold;font-size:11px;letter-spacing:2px;padding:6px 10px;margin-bottom:8px;">RESUMEN ESTADÍSTICO</div>'
+    +'<div style="background:#1a3a5c;color:#fff;font-weight:bold;font-size:11px;letter-spacing:2px;padding:6px 10px;margin-bottom:8px;">'+t('report_stats')+'</div>'
     +'<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;">';
 
-  [[total,'Total','#1a3a5c'],[nPts,'Puntos','#555'],[nLin,'Líneas','#b8860b'],[nPol,'Áreas','#2e7d32']].forEach(function(t){
+  [[total,t('sum_total'),'#1a3a5c'],[nPts,t('sum_points'),'#555'],[nLin,t('sum_lines'),'#b8860b'],[nPol,t('sum_areas'),'#2e7d32']].forEach(function(t){
     html += '<div style="border:1px solid #ddd;border-radius:4px;padding:8px;text-align:center;">'
       +'<div style="font-size:22px;font-weight:bold;color:'+t[2]+';margin-bottom:2px;">'+t[0]+'</div>'
       +'<div style="font-size:9px;color:#666;letter-spacing:1px;">'+t[1].toUpperCase()+'</div>'
@@ -2003,11 +2398,11 @@ function generateReport() {
     html += '<table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:12px;">';
     if (totalL>0) {
       var aFmtR = formatArea(totalA);
-      html += '<tr style="background:#f5f7fa;"><td style="padding:5px 10px;border:1px solid #ddd;font-weight:bold;color:#1a3a5c;">Longitud total de líneas</td><td style="padding:5px 10px;border:1px solid #ddd;">'+totalL.toFixed(2)+' m</td></tr>';
+      html += '<tr style="background:#f5f7fa;"><td style="padding:5px 10px;border:1px solid #ddd;font-weight:bold;color:#1a3a5c;">'+t('sum_total_length')+'</td><td style="padding:5px 10px;border:1px solid #ddd;">'+totalL.toFixed(2)+' m</td></tr>';
     }
     if (totalA>0) {
       var aFmtRp = formatArea(totalA);
-      html += '<tr><td style="padding:5px 10px;border:1px solid #ddd;font-weight:bold;color:#1a3a5c;">Área total de polígonos</td><td style="padding:5px 10px;border:1px solid #ddd;">'+aFmtRp.val+' '+aFmtRp.unit+'</td></tr>';
+      html += '<tr><td style="padding:5px 10px;border:1px solid #ddd;font-weight:bold;color:#1a3a5c;">'+t('sum_total_area')+'</td><td style="padding:5px 10px;border:1px solid #ddd;">'+aFmtRp.val+' '+aFmtRp.unit+'</td></tr>';
     }
     html += '</table>';
   }
@@ -2015,10 +2410,10 @@ function generateReport() {
   // Por tipo
   html += '<table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:12px;">'
     +'<tr style="background:#eef2f7;">'
-    +'<th style="padding:5px 10px;border:1px solid #ddd;text-align:left;color:#1a3a5c;">Tipo de Deterioro</th>'
-    +'<th style="padding:5px 10px;border:1px solid #ddd;text-align:center;color:#1a3a5c;">Unidad</th>'
-    +'<th style="padding:5px 10px;border:1px solid #ddd;text-align:center;color:#1a3a5c;">Cantidad total</th>'
-    +'<th style="padding:5px 10px;border:1px solid #ddd;text-align:center;color:#1a3a5c;"># Elementos</th>'
+    +'<th style="padding:5px 10px;border:1px solid #ddd;text-align:left;color:#1a3a5c;">'+(_lang==='en'?'Deterioration Type':'Tipo de Deterioro')+'</th>'
+    +'<th style="padding:5px 10px;border:1px solid #ddd;text-align:center;color:#1a3a5c;">'+(_lang==='en'?'Unit':'Unidad')+'</th>'
+    +'<th style="padding:5px 10px;border:1px solid #ddd;text-align:center;color:#1a3a5c;">'+(_lang==='en'?'Total quantity':'Cantidad total')+'</th>'
+    +'<th style="padding:5px 10px;border:1px solid #ddd;text-align:center;color:#1a3a5c;">'+(_lang==='en'?'# Elements':'# Elementos')+'</th>'
     +'</tr>';
 
   // Agrupar por tipo + unidad
@@ -2045,7 +2440,7 @@ function generateReport() {
   tipoUnitRows.forEach(function(row, i) {
     var cantStr = row.unit === 'pza' ? '—' : row.unit === 'm' ? row.total.toFixed(2) : row.total.toFixed(4);
     html += '<tr style="background:'+(i%2===0?'#f9f9f9':'#fff')+';">'
-      +'<td style="padding:5px 10px;border:1px solid #ddd;">'+(TYPE_LABELS[row.tipo]||row.tipo)+'</td>'
+      +'<td style="padding:5px 10px;border:1px solid #ddd;">'+(getTypeLabel(row.tipo))+'</td>'
       +'<td style="padding:5px 10px;border:1px solid #ddd;text-align:center;font-weight:bold;color:#2c5282;">'+row.unit+'</td>'
       +'<td style="padding:5px 10px;border:1px solid #ddd;text-align:center;">'+cantStr+'</td>'
       +'<td style="padding:5px 10px;border:1px solid #ddd;text-align:center;">'+row.n+'</td>'
@@ -2055,7 +2450,7 @@ function generateReport() {
 
   // Por severidad
   html += '<table style="width:100%;border-collapse:collapse;font-size:11px;">'
-    +'<tr style="background:#eef2f7;"><th style="padding:5px 10px;border:1px solid #ddd;text-align:left;color:#1a3a5c;">Nivel de Severidad</th><th style="padding:5px 10px;border:1px solid #ddd;text-align:center;color:#1a3a5c;">Cantidad</th></tr>';
+    +'<tr style="background:#eef2f7;"><th style="padding:5px 10px;border:1px solid #ddd;text-align:left;color:#1a3a5c;">'+(_lang==='en'?'Severity Level':'Nivel de Severidad')+'</th><th style="padding:5px 10px;border:1px solid #ddd;text-align:center;color:#1a3a5c;">'+(_lang==='en'?'Count':'Cantidad')+'</th></tr>';
   for (var si=0;si<=5;si++) {
     if (!sevCount[si]) continue;
     html += '<tr><td style="padding:5px 10px;border:1px solid #ddd;">'
@@ -2067,7 +2462,7 @@ function generateReport() {
 
   // ── DETALLE POR COMPONENTE ──
   html += '<div style="margin-bottom:20px;">'
-    +'<div style="background:#1a3a5c;color:#fff;font-weight:bold;font-size:11px;letter-spacing:2px;padding:6px 10px;margin-bottom:8px;">DETALLE POR COMPONENTE</div>';
+    +'<div style="background:#1a3a5c;color:#fff;font-weight:bold;font-size:11px;letter-spacing:2px;padding:6px 10px;margin-bottom:8px;">'+t('report_by_comp')+'</div>';
 
   var compMap2 = {};
   annotations.forEach(function(a){
@@ -2080,20 +2475,21 @@ function generateReport() {
 
   Object.keys(compMap2).forEach(function(comp){
     html += '<div style="margin-bottom:10px;">'
-      +'<div style="background:#2c5282;color:#fff;font-size:11px;font-weight:bold;padding:4px 10px;border-radius:3px 3px 0 0;">'+comp+'</div>';
+      +'<div style="background:#2c5282;color:#fff;font-size:11px;font-weight:bold;padding:4px 10px;border-radius:3px 3px 0 0;">'+displayComp(comp)+'</div>';
     Object.keys(compMap2[comp]).forEach(function(elem){
       var anns2 = compMap2[comp][elem];
       html += '<div style="margin-left:10px;border-left:3px solid #2c5282;margin-bottom:4px;">'
-        +'<div style="background:#ebf4ff;font-size:10px;font-weight:bold;padding:3px 8px;color:#2c5282;">'+elem+' ('+anns2.length+')</div>'
+        +'<div style="background:#ebf4ff;font-size:10px;font-weight:bold;padding:3px 8px;color:#2c5282;">'+(elem==='__sin_elem__'?(_lang==='en'?'No element':'Sin elemento'):displayElem(elem))+' ('+anns2.length+')</div>'
         +'<table style="width:100%;border-collapse:collapse;font-size:10px;">'
-        +'<tr style="background:#eef2f7;"><th style="padding:3px 6px;border:1px solid #ddd;text-align:left;color:#1a3a5c;">Código</th>'
-        +'<th style="padding:3px 6px;border:1px solid #ddd;text-align:left;">Título</th>'
-        +'<th style="padding:3px 6px;border:1px solid #ddd;">Tipo</th>'
-        +'<th style="padding:3px 6px;border:1px solid #ddd;">Geom.</th>'
-        +'<th style="padding:3px 6px;border:1px solid #ddd;">Unidad</th>'
-        +'<th style="padding:3px 6px;border:1px solid #ddd;">Cantidad</th>'
-        +'<th style="padding:3px 6px;border:1px solid #ddd;">Severidad</th>'
-        +'<th style="padding:3px 6px;border:1px solid #ddd;">Notas</th></tr>';
+        +'<tr style="background:#eef2f7;">'
+        +'<th style="padding:3px 6px;border:1px solid #ddd;text-align:left;color:#1a3a5c;">'+(_lang==='en'?'Code':'Código')+'</th>'
+        +'<th style="padding:3px 6px;border:1px solid #ddd;text-align:left;">'+(_lang==='en'?'Title':'Título')+'</th>'
+        +'<th style="padding:3px 6px;border:1px solid #ddd;">'+(_lang==='en'?'Type':'Tipo')+'</th>'
+        +'<th style="padding:3px 6px;border:1px solid #ddd;">'+(_lang==='en'?'Geom.':'Geom.')+'</th>'
+        +'<th style="padding:3px 6px;border:1px solid #ddd;">'+(_lang==='en'?'Unit':'Unidad')+'</th>'
+        +'<th style="padding:3px 6px;border:1px solid #ddd;">'+(_lang==='en'?'Qty':'Cantidad')+'</th>'
+        +'<th style="padding:3px 6px;border:1px solid #ddd;">'+(_lang==='en'?'Severity':'Severidad')+'</th>'
+        +'<th style="padding:3px 6px;border:1px solid #ddd;">'+(_lang==='en'?'Notes':'Notas')+'</th></tr>';
       anns2.forEach(function(a,ai){
         var sevTxt = (a.severidad!==null&&a.severidad!==undefined) ? a.severidad+' - '+SEV_L[a.severidad] : '—';
         var sevStyle = (a.severidad!==null&&a.severidad!==undefined) ? 'color:'+SEV_C[a.severidad]+';font-weight:bold;' : '';
@@ -2110,7 +2506,7 @@ function generateReport() {
         html += '<tr style="background:'+(ai%2===0?'#fafafa':'#fff')+';">'
           +'<td style="padding:3px 6px;border:1px solid #ddd;font-family:monospace;font-weight:bold;color:#1a3a5c;white-space:nowrap;">'+(a.codigo||'—')+'</td>'
           +'<td style="padding:3px 6px;border:1px solid #ddd;">'+a.title+'</td>'
-          +'<td style="padding:3px 6px;border:1px solid #ddd;text-align:center;">'+(TYPE_LABELS[a.type]||a.type)+'</td>'
+          +'<td style="padding:3px 6px;border:1px solid #ddd;text-align:center;">'+(getTypeLabel(a.type))+'</td>'
           +'<td style="padding:3px 6px;border:1px solid #ddd;text-align:center;">'+(GEOM_L[a.geom]||a.geom)+'</td>'
           +'<td style="padding:3px 6px;border:1px solid #ddd;text-align:center;">'+unidad+'</td>'
           +'<td style="padding:3px 6px;border:1px solid #ddd;text-align:center;font-weight:bold;">'+cantidad+'</td>'
@@ -2127,7 +2523,7 @@ function generateReport() {
   var annsConFoto = annotations.filter(function(a){ return a.foto; });
   if (annsConFoto.length > 0) {
     html += '<div style="margin-bottom:20px;page-break-before:auto;">'
-      +'<div style="background:#1a3a5c;color:#fff;font-weight:bold;font-size:11px;letter-spacing:2px;padding:6px 10px;margin-bottom:12px;">REPORTE FOTOGRÁFICO</div>';
+      +'<div style="background:#1a3a5c;color:#fff;font-weight:bold;font-size:11px;letter-spacing:2px;padding:6px 10px;margin-bottom:12px;">'+t('report_photos')+'</div>';
 
     // Grid de 2 columnas
     html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">';
@@ -2149,17 +2545,17 @@ function generateReport() {
         +(a.codigo ? '<div style="font-family:monospace;font-size:10px;color:#2c5282;font-weight:bold;margin-bottom:6px;letter-spacing:1px;">'+a.codigo+'</div>' : '')
           // Tabla de datos
           +'<table style="width:100%;border-collapse:collapse;font-size:10px;">'
-            +'<tr><td style="padding:2px 4px;color:#666;width:45%;">Tipo de deterioro</td>'
-              +'<td style="padding:2px 4px;font-weight:bold;">'+(TYPE_LABELS[a.type]||a.type)+'</td></tr>'
-            +'<tr style="background:#f9f9f9;"><td style="padding:2px 4px;color:#666;">Severidad</td>'
+            +'<tr><td style="padding:2px 4px;color:#666;width:45%;">'+(_lang==='en'?'Deterioration type':'Tipo de deterioro')+'</td>'
+              +'<td style="padding:2px 4px;font-weight:bold;">'+(getTypeLabel(a.type))+'</td></tr>'
+            +'<tr style="background:#f9f9f9;"><td style="padding:2px 4px;color:#666;">'+(_lang==='en'?'Severity':'Severidad')+'</td>'
               +'<td style="padding:2px 4px;font-weight:bold;color:'+sevColor+';">'+sevTxt+'</td></tr>'
-            +'<tr><td style="padding:2px 4px;color:#666;">Componente</td>'
-              +'<td style="padding:2px 4px;">'+(a.componente||'—')+'</td></tr>'
-            +'<tr style="background:#f9f9f9;"><td style="padding:2px 4px;color:#666;">Elemento</td>'
-              +'<td style="padding:2px 4px;">'+(a.elemento||'—')+'</td></tr>'
-            +'<tr><td style="padding:2px 4px;color:#666;">Unidad</td>'
+            +'<tr><td style="padding:2px 4px;color:#666;">'+(_lang==='en'?'Component':'Componente')+'</td>'
+              +'<td style="padding:2px 4px;">'+(a.componente?displayComp(a.componente):'—')+'</td></tr>'
+            +'<tr style="background:#f9f9f9;"><td style="padding:2px 4px;color:#666;">'+(_lang==='en'?'Element':'Elemento')+'</td>'
+              +'<td style="padding:2px 4px;">'+(a.elemento?displayElem(a.elemento):'—')+'</td></tr>'
+            +'<tr><td style="padding:2px 4px;color:#666;">'+(_lang==='en'?'Unit':'Unidad')+'</td>'
               +'<td style="padding:2px 4px;">'+unidad+'</td></tr>'
-            +'<tr style="background:#f9f9f9;"><td style="padding:2px 4px;color:#666;">Cantidad</td>'
+            +'<tr style="background:#f9f9f9;"><td style="padding:2px 4px;color:#666;">'+(_lang==='en'?'Quantity':'Cantidad')+'</td>'
               +'<td style="padding:2px 4px;font-weight:bold;">'+cantidad+'</td></tr>'
           +'</table>'
           +(a.notes ? '<div style="margin-top:6px;font-size:9px;color:#666;font-style:italic;border-top:1px solid #eee;padding-top:4px;">'+a.notes+'</div>' : '')
@@ -2172,7 +2568,7 @@ function generateReport() {
 
   // ── PIE ──
   html += '<div style="border-top:2px solid #1a3a5c;padding-top:10px;text-align:center;font-size:9px;color:#999;">'
-    +'Generado por INSPECTWIN — Visor 3D de Activos Fotogramétricos — '+fechaReporte
+    +(t('report_footer'))+' — '+fechaReporte
     +'</div>';
 
   document.getElementById('report-content').innerHTML = html;
@@ -2189,34 +2585,94 @@ function toggleSumComp(id) {
 
 
 // ── COMPONENTES ESTRUCTURALES DE PUENTE ──────────────────────────────────────
-var BRIDGE_COMPONENTS = {
+var BRIDGE_COMPONENTS_ES = {
   'Superficie de rodadura': ['Superficie de rodadura','Losa de aproximación','Junta de expansión','Señalamiento'],
   'Superestructura': ['Guarniciones','Banquetas','Parapetos','Drenaje','Losa','Trabes','Diafragmas','Vigas acero','Armaduras','Camellones','Servicios públicos','Barreras de contención','Barandal'],
   'Subestructura': ['Pilas','Cabezal','Estribos','Caballetes','Apoyos','Tope sísmico','Cono de derrame'],
   'Cimentación': ['Zapatas','Cajones','Pilotes'],
   'Obras de drenaje': ['Cunetas','Lavaderos'],
 };
+var BRIDGE_COMPONENTS_EN = {
+  'Riding surface': ['Riding surface','Approach slab','Expansion joint','Signage'],
+  'Superstructure': ['Curbs','Sidewalks','Parapets','Drainage','Deck slab','Beams','Diaphragms','Steel girders','Trusses','Medians','Utilities','Barriers','Guardrail'],
+  'Substructure': ['Piers','Cap beam','Abutments','Bents','Bearings','Seismic stopper','Scour cone'],
+  'Foundation': ['Footings','Caissons','Piles'],
+  'Drainage works': ['Ditches','Chutes'],
+};
+
+// ── MAPAS DE TRADUCCIÓN COMPONENTES/ELEMENTOS ────────────────────────────────
+// Siempre guardamos en español (idioma base), mostramos en el idioma activo
+
+var COMP_EN_TO_ES = {
+  'Riding surface':'Superficie de rodadura', 'Superstructure':'Superestructura',
+  'Substructure':'Subestructura', 'Foundation':'Cimentación', 'Drainage works':'Obras de drenaje',
+};
+var COMP_ES_TO_EN = {};
+Object.keys(COMP_EN_TO_ES).forEach(function(k){ COMP_ES_TO_EN[COMP_EN_TO_ES[k]] = k; });
+
+var ELEM_EN_TO_ES = {
+  'Riding surface':'Superficie de rodadura','Approach slab':'Losa de aproximación',
+  'Expansion joint':'Junta de expansión','Signage':'Señalamiento',
+  'Curbs':'Guarniciones','Sidewalks':'Banquetas','Parapets':'Parapetos',
+  'Drainage':'Drenaje','Deck slab':'Losa','Beams':'Trabes','Diaphragms':'Diafragmas',
+  'Steel girders':'Vigas acero','Trusses':'Armaduras','Medians':'Camellones',
+  'Utilities':'Servicios públicos','Barriers':'Barreras de contención','Guardrail':'Barandal',
+  'Piers':'Pilas','Cap beam':'Cabezal','Abutments':'Estribos','Bents':'Caballetes',
+  'Bearings':'Apoyos','Seismic stopper':'Tope sísmico','Scour cone':'Cono de derrame',
+  'Footings':'Zapatas','Caissons':'Cajones','Piles':'Pilotes',
+  'Ditches':'Cunetas','Chutes':'Lavaderos',
+};
+var ELEM_ES_TO_EN = {};
+Object.keys(ELEM_EN_TO_ES).forEach(function(k){ ELEM_ES_TO_EN[ELEM_EN_TO_ES[k]] = k; });
+
+// Convertir componente/elemento al español (para guardar)
+function normalizeToES(comp, elem) {
+  var c2 = comp ? (COMP_EN_TO_ES[comp] || comp) : null;
+  var e2 = elem ? (ELEM_EN_TO_ES[elem] || elem) : null;
+  return { componente: c2, elemento: e2 };
+}
+
+// Mostrar componente/elemento en el idioma activo
+function displayComp(comp) {
+  if (!comp) return '';
+  if (_lang === 'en') return COMP_ES_TO_EN[comp] || comp;
+  return comp;
+}
+function displayElem(elem) {
+  if (!elem) return '';
+  if (_lang === 'en') return ELEM_ES_TO_EN[elem] || elem;
+  return elem;
+}
+
+
+function getBridgeComponents() {
+  return _lang === 'en' ? BRIDGE_COMPONENTS_EN : BRIDGE_COMPONENTS_ES;
+}
+var BRIDGE_COMPONENTS = BRIDGE_COMPONENTS_ES;
 
 function updateElementos(compVal, elemSelectId, selectedElem) {
   var sel = document.getElementById(elemSelectId);
   if (!sel) return;
-  sel.innerHTML = '<option value="">— Elemento —</option>';
-  if (!compVal || !BRIDGE_COMPONENTS[compVal]) return;
-  BRIDGE_COMPONENTS[compVal].forEach(function(e) {
+  sel.innerHTML = '<option value="">'+t('elem_none')+'</option>';
+  // compVal puede ser en ES o EN — normalizamos a ES para buscar
+  var compES = COMP_EN_TO_ES[compVal] || compVal;
+  if (!compES || !BRIDGE_COMPONENTS_ES[compES]) return;
+  BRIDGE_COMPONENTS_ES[compES].forEach(function(e) {
     var opt = document.createElement('option');
-    opt.value = e; opt.textContent = e;
-    if (selectedElem && e === selectedElem) opt.selected = true;
+    opt.value = e; // siempre guardar en ES
+    opt.textContent = displayElem(e); // mostrar en idioma activo
+    if (selectedElem && (e === selectedElem || ELEM_EN_TO_ES[selectedElem] === e)) opt.selected = true;
     sel.appendChild(opt);
   });
 }
 
 function onCompChange(compSelectId, elemSelectId) {
-  // elemSelectId puede venir como string directo o como id del select
   var compEl = typeof compSelectId === 'string'
     ? document.getElementById(compSelectId)
     : compSelectId;
   var compVal = compEl ? compEl.value : '';
-  updateElementos(compVal, elemSelectId, null);
+  var compES = COMP_EN_TO_ES[compVal] || compVal;
+  updateElementos(compES, elemSelectId, null);
 }
 
 // ── MODO CLARO/OSCURO ────────────────────────────────────────────────────────
@@ -2251,14 +2707,329 @@ function toggleTheme() {
   showToast(_lightMode ? 'Modo claro activado' : 'Modo oscuro activado');
 }
 
-// Restaurar preferencia al cargar
-(function() {
+// ── SISTEMA DE IDIOMAS ───────────────────────────────────────────────────────
+var _lang = 'es';
+
+var _T = {
+  es: {
+    nav_navigate:'Navegar', nav_measure:'Medir', nav_annotate:'Anotar', nav_section:'Sección', nav_views:'Vistas', nav_center:'Centrar', nav_summary:'Resumen', nav_report:'Reporte', nav_theme:'Tema', models_title:'Modelos', models_add:'+ AGREGAR MODELO', annotations_title:'Anotaciones', search_placeholder:'Buscar código, título, notas...', filter_all_types:'— Todos los tipos —', filter_severity:'— Severidad —', filter_component:'— Componente —', btn_import:'↑ IMPORTAR', btn_export:'↓ EXPORTAR ANOTACIONES', export_geojson:'⬡ GeoJSON', export_geojson_sub:'— QGIS · ArcGIS · Google Earth', export_csv:'≡ CSV', export_csv_sub:'— Excel · LibreOffice', export_json:'{ } JSON', export_json_sub:'— Formato INSPECTWIN', sec_viz:'Visualización', sec_nav:'Sensibilidad de Navegación', sec_clip:'Plano de Corte', sec_medir:'Medición', brightness:'Brillo', contrast:'Contraste', detail:'Detalle', speed:'VELOCIDAD', wireframe:'Wireframe', basemap:'Mapa Base', zoom_wheel:'Zoom (Rueda)', axis:'Eje', position:'Posición', lbl_axis:'Eje', lbl_position:'POSICIÓN', mm_dist:'DIST', mm_area:'ÁREA', mm_point:'PUNTO', mm_angle:'ÁNGULO', mm_profile:'PERFIL', btn_clear:'✕ LIMPIAR', btn_close_poly:'⬡ CERRAR POLÍGONO', ann_new_title:'Nueva Anotación', ann_point:'● PUNTO', ann_line:'— LÍNEA', ann_area:'⬡ ÁREA', ann_desc_placeholder:'Descripción (ej: Grieta diagonal)', ann_notes_placeholder:'Notas adicionales...', ann_sev_placeholder:'— Severidad (opcional) —', ann_comp_placeholder:'— Componente (opcional) —', ann_elem_placeholder:'— Elemento —', btn_add_point:'+ AÑADIR PUNTO', btn_finish:'▶ FINALIZAR', btn_cancel:'✕ CANCELAR', type_fisura:'Fisura', type_crack:'Grieta', type_desconchadura:'Desconchadura', type_rebar:'Acero expuesto', type_corrosion:'Corrosión', type_carbonatacion:'Carbonatación', type_humedad:'Humedad', type_eflorecencias:'Eflorescencias', type_socavacion:'Socavación', type_bache:'Bache', type_pintura:'Pintura', type_erosion:'Erosión', type_asolve:'Asolve', type_vegetacion:'Vegetación', type_anclajes:'Anclajes', type_impactos:'Impactos', type_vandalismo:'Vandalismo', type_other:'Otro', sev_none:'— Sin clasificar —', sev_0:'0 — Sin daño', sev_1:'1 — Muy leve',
+    sev_2:'2 — Leve', sev_3:'3 — Moderado', sev_4:'4 — Severo', sev_5:'5 — Muy severo', comp_none:'— Componente (opcional) —', comp_rodadura:'Superficie de rodadura', comp_super:'Superestructura', comp_sub:'Subestructura', comp_ciment:'Cimentación', comp_drenaje:'Obras de drenaje', elem_none:'— Elemento —', edit_title:'TÍTULO', edit_type:'TIPO DE DAÑO', edit_notes:'NOTAS', edit_sev:'SEVERIDAD', edit_comp:'COMPONENTE', edit_elem:'ELEMENTO', edit_code:'CÓDIGO', edit_coords:'COORDENADAS', edit_photo:'FOTO', btn_save:'✓ GUARDAR CAMBIOS', btn_hide:'OCULTAR', btn_show:'MOSTRAR', btn_delete:'BORRAR', btn_attach_photo:'📷 ADJUNTAR FOTO', btn_remove_photo:'✕ ELIMINAR FOTO', no_results:'SIN RESULTADOS', no_results_sub:'Ajusta o limpia los filtros', views_title:'VISTAS GUARDADAS', views_save:'⭐ GUARDAR', views_empty:'SIN VISTAS GUARDADAS', screenshot_title:'📷 CAPTURA DE PANTALLA', screenshot_name_placeholder:'nombre-captura', btn_download_png:'⬇ DESCARGAR PNG', btn_close:'CERRAR', summary_title:'RESUMEN DE INSPECCIÓN', sum_generated:'Generado:', sum_total:'TOTAL', sum_points:'PUNTOS', sum_lines:'LÍNEAS', sum_areas:'ÁREAS', sum_by_type:'POR TIPO DE DETERIORO', sum_by_sev:'POR SEVERIDAD', sum_metrics:'MÉTRICAS CUANTITATIVAS', sum_by_comp:'POR COMPONENTE Y ELEMENTO', sum_models:'MODELOS CARGADOS', sum_no_ann:'Sin anotaciones', sum_no_sev:'Sin datos de severidad', sum_no_comp:'Sin anotaciones con componente asignado', sum_total_length:'Longitud total de líneas', sum_avg_length:'Longitud promedio por línea', sum_total_area:'Área total de polígonos', sum_photos:'Anotaciones con foto', sum_no_sev_class:'Sin severidad clasificada', sum_all_class:'✓ Todas clasificadas', report_title:'REPORTE DE DETERIOROS', report_bridge_data:'DATOS DEL PUENTE', report_edit:'✎ EDITAR DATOS', report_download:'↓ DESCARGAR PDF', report_stats:'RESUMEN ESTADÍSTICO', report_by_comp:'DETALLE POR COMPONENTE', report_photos:'REPORTE FOTOGRÁFICO', report_footer:'Generado por INSPECTWIN — Visor 3D de Activos Fotogramétricos', report_date:'Fecha del reporte:', report_annotations:'Anotaciones:', bf_fecha:'FECHA DEL LEVANTAMIENTO', bf_especialista:'NOMBRE DEL ESPECIALISTA', bf_nombre:'NOMBRE DEL PUENTE', bf_red:'TIPO DE RED', bf_estructura:'TIPO DE ESTRUCTURA', bf_km:'KILOMETRAJE AL CENTRO DEL PUENTE', bf_entidad:'ENTIDAD FEDERATIVA', bf_municipio:'MUNICIPIO', bf_localidad:'LOCALIDAD', bf_coords:'COORDENADAS GEOGRÁFICAS AL CENTRO', bf_tdpa:'T.D.P.A.', bf_anio:'AÑO DE CONSTRUCCIÓN', btn_generate:'▶ GENERAR REPORTE', toast_model_centered:'✓ Modelo centrado', toast_no_model:'No hay modelo cargado', toast_clip_on:'Plano de corte activado', toast_clip_off:'Plano de corte desactivado', toast_ann_visible:'Anotaciones visibles', toast_ann_hidden:'Anotaciones ocultas', toast_light:'Modo claro activado', toast_dark:'Modo oscuro activado', toast_view_saved:'Vista guardada:', toast_model_removed:'Modelo eliminado', toast_ann_updated:'Anotación actualizada', toast_exported:'GeoJSON exportado —', toast_annotations:'anotaciones', toast_csv_exported:'CSV exportado', toast_photo_attached:'Foto adjuntada:', toast_photo_removed:'Foto eliminada',
+    toast_needs_2pts:'Necesitas al menos 2 puntos', toast_needs_3pts:'Necesitas al menos 3 puntos', hud_lat:'LAT', hud_lon:'LON', hud_alt:'ALT', hud_dist:'DIST. CÁMARA', demo_banner:'INSPECTWIN — VISOR 3D DE ACTIVOS v1.0', help_title:'MANUAL DE USO', help_tab1:'Inicio rápido', help_tab2:'Modelos 3D', help_tab3:'Medición', help_tab4:'Anotaciones', help_tab5:'Reporte', help_tab6:'Navegación', unit_meters:'METROS', unit_km:'KM', btn_copy_coords:'⎘ COPIAR COORDENADAS', lbl_zone:'ZONA', lbl_incl:'INCLINACIÓN', lbl_azimut:'AZIMUT', lbl_slope:'PENDIENTE', lbl_direction:'DIRECCIÓN',
+    ang_3pts:'3 puntos — plano definido', profile_title:'PERFIL TOPOGRÁFICO', lbl_speed:'VELOCIDAD', hint_point:'Haz clic en el modelo para posicionar', hint_line:'Clic para vertices - doble clic para finalizar', hint_polygon:'Clic para vertices — doble clic para cerrar el área', hint_ann_default:'Haz clic en el modelo para posicionar',
+  }, en: {
+    nav_navigate:'Navigate', nav_measure:'Measure', nav_annotate:'Annotate', nav_section:'Section', nav_views:'Views', nav_center:'Center', nav_summary:'Summary', nav_report:'Report', nav_theme:'Theme', models_title:'Models', models_add:'+ ADD MODEL', annotations_title:'Annotations', search_placeholder:'Search code, title, notes...', filter_all_types:'— All types —', filter_severity:'— Severity —', filter_component:'— Component —', btn_import:'↑ IMPORT', btn_export:'↓ EXPORT ANNOTATIONS', export_geojson:'⬡ GeoJSON', export_geojson_sub:'— QGIS · ArcGIS · Google Earth', export_csv:'≡ CSV', export_csv_sub:'— Excel · LibreOffice', export_json:'{ } JSON', export_json_sub:'— INSPECTWIN Format', sec_viz:'Visualization', sec_nav:'Navigation Sensitivity', sec_clip:'Clipping Plane', sec_medir:'Measurement', brightness:'Brightness', contrast:'Contrast', detail:'Detail', speed:'SPEED', wireframe:'Wireframe', basemap:'Base Map', zoom_wheel:'Zoom (Wheel)', axis:'Axis', position:'Position', lbl_axis:'Axis', lbl_position:'POSITION', mm_dist:'DIST', mm_area:'AREA', mm_point:'POINT', mm_angle:'ANGLE', mm_profile:'PROFILE', btn_clear:'✕ CLEAR', btn_close_poly:'⬡ CLOSE POLYGON', ann_new_title:'New Annotation', ann_point:'● POINT', ann_line:'— LINE', ann_area:'⬡ AREA', ann_desc_placeholder:'Description (e.g. Diagonal crack)', ann_notes_placeholder:'Additional notes...', ann_sev_placeholder:'— Severity (optional) —', ann_comp_placeholder:'— Component (optional) —', ann_elem_placeholder:'— Element —', btn_add_point:'+ ADD POINT', btn_finish:'▶ FINISH', btn_cancel:'✕ CANCEL', type_fisura:'Hairline crack', type_crack:'Crack', type_desconchadura:'Spalling', type_rebar:'Exposed rebar', type_corrosion:'Corrosion', type_carbonatacion:'Carbonation', type_humedad:'Moisture', type_eflorecencias:'Efflorescence', type_socavacion:'Scour', type_bache:'Pothole', type_pintura:'Paint damage', type_erosion:'Erosion', type_asolve:'Silting', type_vegetacion:'Vegetation', type_anclajes:'Anchors', type_impactos:'Impact damage', type_vandalismo:'Vandalism', type_other:'Other', sev_none:'— Unclassified —', sev_0:'0 — No damage', sev_1:'1 — Very minor',
+    sev_2:'2 — Minor', sev_3:'3 — Moderate', sev_4:'4 — Severe', sev_5:'5 — Critical', comp_none:'— Component (optional) —', comp_rodadura:'Riding surface', comp_super:'Superstructure', comp_sub:'Substructure', comp_ciment:'Foundation', comp_drenaje:'Drainage works', elem_none:'— Element —', edit_title:'TITLE', edit_type:'DAMAGE TYPE', edit_notes:'NOTES', edit_sev:'SEVERITY', edit_comp:'COMPONENT', edit_elem:'ELEMENT', edit_code:'CODE', edit_coords:'COORDINATES', edit_photo:'PHOTO', btn_save:'✓ SAVE CHANGES', btn_hide:'HIDE', btn_show:'SHOW', btn_delete:'DELETE', btn_attach_photo:'📷 ATTACH PHOTO', btn_remove_photo:'✕ REMOVE PHOTO', no_results:'NO RESULTS', no_results_sub:'Adjust or clear filters', views_title:'SAVED VIEWS', views_save:'⭐ SAVE', views_empty:'NO SAVED VIEWS', screenshot_title:'📷 SCREENSHOT', screenshot_name_placeholder:'capture-name', btn_download_png:'⬇ DOWNLOAD PNG', btn_close:'CLOSE', summary_title:'INSPECTION SUMMARY', sum_generated:'Generated:', sum_total:'TOTAL', sum_points:'POINTS', sum_lines:'LINES', sum_areas:'AREAS', sum_by_type:'BY DETERIORATION TYPE', sum_by_sev:'BY SEVERITY', sum_metrics:'QUANTITATIVE METRICS', sum_by_comp:'BY COMPONENT AND ELEMENT', sum_models:'LOADED MODELS', sum_no_ann:'No annotations', sum_no_sev:'No severity data', sum_no_comp:'No annotations with assigned component', sum_total_length:'Total line length', sum_avg_length:'Average length per line', sum_total_area:'Total polygon area', sum_photos:'Annotations with photo', sum_no_sev_class:'Without classified severity', sum_all_class:'✓ All classified', report_title:'DETERIORATION REPORT', report_bridge_data:'BRIDGE DATA', report_edit:'✎ EDIT DATA', report_download:'↓ DOWNLOAD PDF', report_stats:'STATISTICAL SUMMARY', report_by_comp:'DETAIL BY COMPONENT', report_photos:'PHOTO REPORT', report_footer:'Generated by INSPECTWIN — 3D Asset Viewer for Photogrammetry', report_date:'Report date:', report_annotations:'Annotations:', bf_fecha:'SURVEY DATE', bf_especialista:'SPECIALIST NAME', bf_nombre:'BRIDGE NAME', bf_red:'NETWORK TYPE', bf_estructura:'STRUCTURE TYPE', bf_km:'KILOMETER AT BRIDGE CENTER', bf_entidad:'STATE / PROVINCE', bf_municipio:'MUNICIPALITY', bf_localidad:'LOCALITY', bf_coords:'GEOGRAPHIC COORDINATES AT CENTER', bf_tdpa:'A.A.D.T.', bf_anio:'YEAR OF CONSTRUCTION', btn_generate:'▶ GENERATE REPORT', toast_model_centered:'✓ Model centered', toast_no_model:'No model loaded', toast_clip_on:'Clipping plane activated', toast_clip_off:'Clipping plane deactivated', toast_ann_visible:'Annotations visible', toast_ann_hidden:'Annotations hidden', toast_light:'Light mode activated', toast_dark:'Dark mode activated', toast_view_saved:'View saved:', toast_model_removed:'Model removed', toast_ann_updated:'Annotation updated', toast_exported:'GeoJSON exported —', toast_annotations:'annotations', toast_csv_exported:'CSV exported', toast_photo_attached:'Photo attached:', toast_photo_removed:'Photo removed',
+    toast_needs_2pts:'You need at least 2 points', toast_needs_3pts:'You need at least 3 points', hud_lat:'LAT', hud_lon:'LON', hud_alt:'ALT', hud_dist:'CAM. DIST', demo_banner:'INSPECTWIN — 3D ASSET VIEWER v1.0', help_title:'USER MANUAL', help_tab1:'Quick start', help_tab2:'3D Models', help_tab3:'Measurement', help_tab4:'Annotations', help_tab5:'Report', help_tab6:'Navigation', unit_meters:'METERS', unit_km:'KM', btn_copy_coords:'⎘ COPY COORDINATES', lbl_zone:'ZONE', lbl_incl:'INCLINATION', lbl_azimut:'AZIMUTH', lbl_slope:'SLOPE', lbl_direction:'DIRECTION',
+    ang_3pts:'3 points — plane defined', profile_title:'TOPOGRAPHIC PROFILE', lbl_speed:'SPEED', hint_point:'Click on the model to position', hint_line:'Click for vertices - double click to finish', hint_polygon:'Click for vertices — double click to close area', hint_ann_default:'Click on the model to position',
+  },
+};;
+
+function t(key) {
+  var dict = _T[_lang] || _T.es;
+  return dict[key] !== undefined ? dict[key] : (_T.es[key] || key);
+}
+
+function toggleLang() {
+  _lang = _lang === 'es' ? 'en' : 'es';
+  var label = document.getElementById('lang-label');
+  if (label) label.textContent = _lang.toUpperCase();
+  try { localStorage.setItem('inspectwin-lang', _lang); } catch(e) {}
+  try { applyLang(); } catch(err) { console.error('applyLang error:', err); }
+}
+
+function applyLang() {
+  // Barra de navegación
+  var navMap = {
+    'btn-navigate': 'nav_navigate',
+    'btn-measure':  'nav_measure',
+    'btn-annotate': 'nav_annotate',
+    'btn-section':  'nav_section',
+    'btn-home':     'nav_views',
+    'btn-center':   'nav_center',
+    'btn-summary':  'nav_summary',
+    'btn-report':   'nav_report',
+    'btn-theme':    'nav_theme',
+  };
+  Object.keys(navMap).forEach(function(id) {
+    try {
+      var btn = document.getElementById(id);
+      if (!btn) return;
+      var nodes = btn.childNodes;
+      for (var i = nodes.length-1; i >= 0; i--) {
+        if (nodes[i].nodeType === 3) {
+          nodes[i].textContent = ' ' + t(navMap[id]) + ' ';
+          break;
+        }
+      }
+    } catch(ex) {}
+  });
+
+  // Textos con id específico
+  var idMap = {
+    'sec-viz-lbl':  'sec_viz',
+    'sec-nav-lbl':  'sec_nav',
+    'sec-clip-lbl': 'sec_clip',
+    'sec-medir-lbl':'sec_medir',
+  };
+  Object.keys(idMap).forEach(function(id) {
+    try {
+      var el = document.getElementById(id);
+      if (!el) return;
+      if (el.childNodes[0]) el.childNodes[0].textContent = t(idMap[id]);
+    } catch(ex) {}
+  });
+
+  // Placeholders e inputs
+  var phMap = {
+    'search-ann':    'search_placeholder',
+    'ann-title':     'ann_desc_placeholder',
+    'ann-notes':     'ann_notes_placeholder',
+    'screenshot-name': 'screenshot_name_placeholder',
+  };
+  Object.keys(phMap).forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.placeholder = t(phMap[id]);
+  });
+
+  // Selects de tipo de deterioro
+  var tipoSelects = ['ann-type', 'filter-tipo'];
+  var typeKeys = ['fisura','crack','desconchadura','rebar','corrosion','carbonatacion',
+    'humedad','eflorecencias','socavacion','bache','pintura','erosion',
+    'asolve','vegetacion','anclajes','impactos','vandalismo','other'];
+  tipoSelects.forEach(function(selId) {
+    var sel = document.getElementById(selId);
+    if (!sel) return;
+    var opts = sel.querySelectorAll('option');
+    opts.forEach(function(opt) {
+      var val = opt.value;
+      if (val === '') {
+        opt.textContent = selId === 'filter-tipo' ? t('filter_all_types') : t('type_fisura').replace('Fisura','').trim();
+      } else if (_T.es['type_'+val]) {
+        opt.textContent = t('type_'+val);
+      }
+    });
+  });
+
+  // Select severidad
+  var sevSelects = ['ann-severidad', 'filter-sev'];
+  sevSelects.forEach(function(selId) {
+    var sel = document.getElementById(selId);
+    if (!sel) return;
+    var opts = sel.querySelectorAll('option');
+    opts.forEach(function(opt) {
+      var val = opt.value;
+      if (val === '') opt.textContent = selId === 'filter-sev' ? t('filter_severity') : t('sev_none');
+      else opt.textContent = t('sev_' + val);
+    });
+  });
+
+  // Select componente
+  // Actualizar BRIDGE_COMPONENTS global según idioma
+  BRIDGE_COMPONENTS = _lang === 'en' ? BRIDGE_COMPONENTS_EN : BRIDGE_COMPONENTS_ES;
+
+  var compSel = document.getElementById('ann-componente');
+  if (compSel) {
+    var cKeys = ['','rodadura','super','sub','ciment','drenaje'];
+    var cVals_es = ['','Superficie de rodadura','Superestructura','Subestructura','Cimentación','Obras de drenaje'];
+    var cVals_en = ['','Riding surface','Superstructure','Substructure','Foundation','Drainage works'];
+    var cVals = _lang === 'en' ? cVals_en : cVals_es;
+    // Reconstruir el select
+    compSel.innerHTML = '<option value="">'+t('comp_none')+'</option>';
+    for (var ci = 1; ci < cVals.length; ci++) {
+      var opt = document.createElement('option');
+      opt.value = cVals[ci];
+      opt.textContent = t('comp_' + cKeys[ci]);
+      compSel.appendChild(opt);
+    }
+    // Resetear elementos
+    var elemSel = document.getElementById('ann-elemento');
+    if (elemSel) elemSel.innerHTML = '<option value="">'+t('elem_none')+'</option>';
+  }
+
+  // Vistas panel
+  var vtitle = document.querySelector('#views-panel span');
+  if (vtitle) vtitle.textContent = t('views_title');
+  var vsave = document.querySelector('#views-panel button:last-child');
+  if (vsave) vsave.innerHTML = '&#9733; ' + t('views_save').replace('⭐ ','');
+
+  // Demo banner
+  var banner = document.getElementById('demo-banner');
+  if (banner) banner.textContent = t('demo_banner');
+
+  // Botón exportar
+  var expBtn = document.getElementById('btn-export-ann');
+  if (expBtn) expBtn.textContent = t('btn_export');
+
+  // Botón importar
+  var impBtn = document.getElementById('btn-import-ann');
+  if (impBtn) impBtn.textContent = t('btn_import');
+
+  // Panel izquierdo
+  var lblModels = document.getElementById('lbl-models');
+  if (lblModels) {
+    var mc = document.getElementById('model-count');
+    lblModels.innerHTML = t('models_title') + ' <span id="model-count" style="color:var(--accent)">' + (mc?mc.textContent:'0') + '</span>';
+  }
+  var lblAnn = document.getElementById('lbl-annotations');
+  if (lblAnn) lblAnn.textContent = t('annotations_title');
+  var dzTitle = document.getElementById('dz-title-text');
+  if (dzTitle) dzTitle.textContent = (_lang==='en'?'+ ADD MODEL':'+ AGREGAR MODELO');
+
+  // Panel derecho — velocidad, mapa base, zoom
+  var lblSpeed = document.getElementById('lbl-speed');
+  if (lblSpeed) lblSpeed.textContent = t('lbl_speed');
+  var lblBasemap = document.getElementById('lbl-basemap');
+  if (lblBasemap) lblBasemap.textContent = t('basemap');
+  var lblZoom = document.getElementById('lbl-zoom');
+  if (lblZoom) lblZoom.textContent = t('zoom_wheel');
+
+  // Hint de anotación
+  var annHint = document.getElementById('ann-hint');
+  if (annHint) annHint.textContent = t('hint_ann_default');
+  var annHintDef = document.getElementById('ann-hint-text-default');
+  if (annHintDef) annHintDef.textContent = t('hint_ann_default');
+
+  // Resultados de medición
+  var lblMunit = document.getElementById('lbl-munit');
+  if (lblMunit) lblMunit.textContent = t('unit_meters');
+  var lblZone = document.getElementById('lbl-pt-zone');
+  if (lblZone) lblZone.textContent = t('lbl_zone');
+  var btnCopyC = document.getElementById('btn-copy-coords');
+  if (btnCopyC) btnCopyC.textContent = t('btn_copy_coords');
+  var lblInc = document.getElementById('lbl-ang-incl'); if (lblInc) lblInc.textContent = t('lbl_incl');
+  var lblAzm = document.getElementById('lbl-ang-azim'); if (lblAzm) lblAzm.textContent = t('lbl_azimut');
+  var lblSlp = document.getElementById('lbl-ang-pend'); if (lblSlp) lblSlp.textContent = t('lbl_slope');
+  var lblDir = document.getElementById('lbl-ang-dir');  if (lblDir) lblDir.textContent = t('lbl_direction');
+  var lblProfT = document.getElementById('lbl-profile-title');
+  if (lblProfT) lblProfT.textContent = t('profile_title');
+  // Plano de corte
+  var lblAxis = document.getElementById('lbl-clip-axis');
+  if (lblAxis) lblAxis.textContent = t('lbl_axis');
+  var lblPos = document.getElementById('lbl-clip-pos');
+  if (lblPos) lblPos.textContent = t('lbl_position');
+
+  // Labels del panel derecho
+  var lbright = document.getElementById('lbl-brightness');
+  var lcontr  = document.getElementById('lbl-contrast');
+  var ldetail = document.getElementById('lbl-detail');
+  var lclip   = document.getElementById('sec-clip-lbl');
+  var lclear  = document.getElementById('btn-clear-measure');
+
+  if (lbright) { var bv = document.getElementById('bright-val'); lbright.innerHTML = t('brightness') + ' <span id="bright-val">' + (bv?bv.textContent:'1.0') + '</span>'; }
+  if (lcontr)  { var cv = document.getElementById('contrast-val'); lcontr.innerHTML = t('contrast') + ' <span id="contrast-val">' + (cv?cv.textContent:'1.0') + '</span>'; }
+  if (ldetail) { var dv = document.getElementById('sse-val'); ldetail.innerHTML = t('detail') + ' <span id="sse-val">' + (dv?dv.textContent:'16') + '</span>'; }
+  if (lclear)  lclear.textContent = (_lang==='en' ? '✕ CLEAR' : '✕ LIMPIAR');
+
+  // Botones de medición
+  var mmMap = {
+    'mm-dist':    'mm_dist',
+    'mm-area':    'mm_area',
+    'mm-point':   'mm_point',
+    'mm-angle':   'mm_angle',
+    'mm-profile': 'mm_profile',
+  };
+  Object.keys(mmMap).forEach(function(id) {
+    var btn = document.getElementById(id);
+    if (btn) btn.textContent = t(mmMap[id]);
+  });
+
+  // Botón cerrar polígono
+  var btnClosePoly = document.getElementById('btn-close-poly');
+  if (btnClosePoly) btnClosePoly.textContent = t('btn_close_poly');
+
+  // Botón limpiar medición
+  var btnClearM = document.getElementById('btn-clear-measure');
+  if (btnClearM) btnClearM.textContent = t('btn_clear');
+
+  // Hints de medición según modo activo
+  var hint = document.getElementById('measure-hint');
+  if (hint && hint.textContent) {
+    // Solo actualizar si el hint tiene el texto original
+  }
+
+  // Botones de anotación
+  var btnAnnAdd = document.getElementById('ann-btn-add');
+  if (btnAnnAdd) btnAnnAdd.textContent = (_lang==='en' ? '+ ADD POINT' : '+ AÑADIR PUNTO');
+
+  // Título sección nueva anotación
+  var annNewLabel = document.querySelector('#annotate-panel .panel-label');
+  if (annNewLabel) annNewLabel.childNodes[0].textContent = (_lang==='en' ? 'New Annotation' : 'Nueva Anotación');
+
+  // Botones geometría
+  var agPoint = document.getElementById('ag-point');
+  var agLine  = document.getElementById('ag-line');
+  var agPoly  = document.getElementById('ag-polygon');
+  if (agPoint) agPoint.textContent = (_lang==='en' ? '● POINT' : '● PUNTO');
+  if (agLine)  agLine.textContent  = (_lang==='en' ? '— LINE' : '— LÍNEA');
+  if (agPoly)  agPoly.textContent  = (_lang==='en' ? '⬡ AREA' : '⬡ ÁREA');
+
+  // Filter component select
+  var filterComp = document.getElementById('filter-comp');
+  if (filterComp) {
+    var fcOpts = filterComp.querySelectorAll('option');
+    var fcLabels = _lang==='en'
+      ? ['— Component —','Riding surface','Superstructure','Substructure','Foundation','Drainage works']
+      : ['— Componente —','Sup. rodadura','Superestructura','Subestructura','Cimentación','Drenaje'];
+    fcOpts.forEach(function(opt, i){ if (fcLabels[i]) opt.textContent = fcLabels[i]; });
+  }
+
+  // Formulario del puente
+  var bfTitle = document.getElementById('lbl-bridge-form-title');
+  if (bfTitle) bfTitle.textContent = t('report_bridge_data');
+  var genTxt = document.getElementById('btn-generate-text');
+  if (genTxt) genTxt.textContent = t('btn_generate');
+  // Traducir labels del formulario dinámicamente
+  document.querySelectorAll('.bf-lbl').forEach(function(el) {
+    var key = el.getAttribute('data-key');
+    if (key) el.textContent = t(key);
+  });
+  // Botones del modal de reporte
+  var repEdit = document.getElementById('btn-report-edit');
+  if (repEdit) repEdit.textContent = t('report_edit');
+  var repDown = document.getElementById('btn-report-print');
+  if (repDown) repDown.textContent = t('report_download');
+
+  // Título del summary
+  var sumTitle = document.getElementById('lbl-summary-title');
+  if (sumTitle) sumTitle.textContent = t('summary_title');
+
+  // Secciones del summary
+  var sumLabels = {
+    'sum-lbl-sum_by_type':  'sum_by_type',
+    'sum-lbl-sum_by_sev':   'sum_by_sev',
+    'sum-lbl-sum_metrics':  'sum_metrics',
+    'sum-lbl-sum_by_comp':  'sum_by_comp',
+    'sum-lbl-sum_models':   'sum_models',
+  };
+  Object.keys(sumLabels).forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = t(sumLabels[id]);
+  });
+
+  // Actualizar ayuda si está abierta
+  var helpModal = document.getElementById('help-modal');
+  if (helpModal && helpModal.style.display !== 'none') {
+    var helpTitle = document.getElementById('help-modal-title');
+    if (helpTitle) helpTitle.textContent = t('help_title');
+    updateHelpTabs();
+  }
+
+  // Regenerar reporte si está abierto
   try {
-    if (localStorage.getItem('inspectwin-theme') === 'light') {
-      setTimeout(function(){ toggleTheme(); }, 500);
+    var repModal = document.getElementById('report-modal');
+    if (repModal && repModal.style.display !== 'none') {
+      generateReport();
     }
   } catch(e) {}
-})();
+
+  // Renderizar listas para actualizar textos dinámicos
+  try { renderAnnotationList(); } catch(e) {}
+  try { renderModelList(); } catch(e) {}
+  try { renderViewsList(); } catch(e) {}
+}
+
+// (idioma restaurado por window.load)
+
 
 function setMode(mode) {
   currentMode = mode;
@@ -2410,7 +3181,7 @@ async function loadModelFile(file) {
 
       currentTileset = await Cesium.Cesium3DTileset.fromUrl(rootTilesetUrl, {
         maximumScreenSpaceError: 16,
-        shadows: Cesium.ShadowMode.ENABLED,
+        shadows: Cesium.ShadowMode.DISABLED,
       });
       viewer.scene.primitives.add(currentTileset);
 
@@ -2442,7 +3213,7 @@ async function loadModelFile(file) {
       const url = trackBlob(URL.createObjectURL(file));
       currentTileset = await Cesium.Cesium3DTileset.fromUrl(url, {
         maximumScreenSpaceError: 16,
-        shadows: Cesium.ShadowMode.ENABLED,
+        shadows: Cesium.ShadowMode.DISABLED,
       });
       viewer.scene.primitives.add(currentTileset);
       await viewer.zoomTo(currentTileset);
@@ -2458,7 +3229,7 @@ async function loadModelFile(file) {
           url,
           modelMatrix,
           scale: 1.0,
-          shadows: Cesium.ShadowMode.ENABLED,
+          shadows: Cesium.ShadowMode.DISABLED,
         })
       );
       // Esperar que cargue y hacer zoom
@@ -3012,7 +3783,10 @@ viewer.screenSpaceEventHandler.setInputAction(function(click) {
         }
       } else {
         var hint2 = document.getElementById('measure-hint');
-        if (hint2) hint2.textContent = 'Punto '+_anglePts.length+'/3 — '+(3-_anglePts.length)+' restante(s)';
+        var rem2 = 3 - _anglePts.length;
+        if (hint2) hint2.textContent = _lang==='en'
+          ? 'Point '+_anglePts.length+'/3 — '+rem2+' remaining'
+          : 'Punto '+_anglePts.length+'/3 — '+rem2+' restante(s)';
       }
 
     } else if (_measureMode === 'profile') {
@@ -3039,7 +3813,9 @@ viewer.screenSpaceEventHandler.setInputAction(function(click) {
         }));
       }
       var hintP2 = document.getElementById('measure-hint');
-      if (hintP2) hintP2.textContent = 'Punto '+_linePts.length+' — doble clic para generar el perfil';
+      if (hintP2) hintP2.textContent = _lang==='en'
+        ? 'Point '+_linePts.length+' — double click to generate profile'
+        : 'Punto '+_linePts.length+' — doble clic para generar el perfil';
 
     } else if (_measureMode === 'point') {
       // Modo punto: mostrar coordenadas exactas del punto clickeado
@@ -3325,7 +4101,7 @@ viewer.screenSpaceEventHandler.setInputAction(function(click) {
   }
   if (currentMode === 'annotate' && _annGeom === 'profile') {
     if (_linePts.length >= 2) generateProfile();
-    else showToast('Necesitas al menos 2 puntos');
+    else showToast(_lang==='en'?'You need at least 2 points':t('toast_needs_2pts'));
   }
   if (currentMode === 'measure' && _measureMode === 'profile' && _linePts.length >= 2) {
     generateProfile();
@@ -3343,7 +4119,7 @@ var _polySides    = [];  // distancias de cada lado
 function setMeasureMode(mode) {
   _measureMode = mode;
   clearMeasure();
-  var ids = ['mm-dist','mm-area','mm-point','mm-angle'];
+  var ids = ['mm-dist','mm-area','mm-point','mm-angle','mm-profile'];
   ids.forEach(function(id){ var b=document.getElementById(id); if(b) b.classList.remove('bm-active'); });
   var activeId = mode==='distance'?'mm-dist':mode==='area'?'mm-area':mode==='angle'?'mm-angle':mode==='profile'?'mm-profile':'mm-point';
   var activeBtn = document.getElementById(activeId);
@@ -3355,11 +4131,11 @@ function setMeasureMode(mode) {
   if (cp) cp.style.display = mode === 'area' ? 'block' : 'none';
   var hint = document.getElementById('measure-hint');
   if (hint) hint.textContent =
-    mode === 'distance' ? 'Haz clic en dos puntos del modelo.' :
-    mode === 'area'     ? 'Clic para vértices. Doble clic o "Cerrar" para finalizar.' :
-    mode === 'angle'    ? 'Marca 3 puntos sobre el plano para calcular la inclinación.' :
-    mode === 'profile'  ? 'Clic para puntos del perfil — doble clic para generar.' :
-                          'Haz clic en cualquier punto del modelo.';
+    mode === 'distance' ? (_lang==='en'?'Click on two points of the model.':'Haz clic en dos puntos del modelo.') :
+    mode === 'area'     ? (_lang==='en'?'Click for vertices. Double click or "Close" to finish.':'Clic para vértices. Doble clic o "Cerrar" para finalizar.') :
+    mode === 'angle'    ? (_lang==='en'?'Mark 3 points on the surface to calculate inclination.':'Marca 3 puntos sobre el plano para calcular la inclinación.') :
+    mode === 'profile'  ? (_lang==='en'?'Click for profile points — double click to generate.':'Clic para puntos del perfil — doble clic para generar.') :
+                          (_lang==='en'?'Click on any point of the model.':'Haz clic en cualquier punto del modelo.');
 }
 
 // Calcular área de un polígono 3D proyectado al plano ENU local
@@ -3675,7 +4451,7 @@ function showAngleResult(result) {
   document.getElementById('ang-azim').textContent = result.azimut.toFixed(1) + '°';
   document.getElementById('ang-pend').textContent = result.pendiente.toFixed(1) + '%';
   document.getElementById('ang-dir').textContent  = result.direccion;
-  document.getElementById('ang-pts-info').textContent = '3 puntos — plano definido';
+  document.getElementById('ang-pts-info').textContent = t('ang_3pts');
 }
 
 function clearMeasure() {
@@ -3693,7 +4469,7 @@ function clearMeasure() {
     var el=document.getElementById(id); if(el) el.style.display='none';
   });
   _lastPointCoords = null;
-  document.querySelector('.munit') && (document.querySelector('.munit').textContent = 'METROS');
+  var mu = document.getElementById('lbl-munit'); if (mu) mu.textContent = t('unit_meters');
 }
 
 // ── ANOTACIONES ──
@@ -3963,21 +4739,21 @@ function setAnnGeom(mode) {
     document.getElementById('ann-btn-add').style.display    = 'block';
     document.getElementById('ann-btn-finish').style.display = 'none';
     document.getElementById('ann-btn-cancel').style.display = 'none';
-    if (hint) hint.textContent = 'Haz clic en el modelo para posicionar';
+    if (hint) hint.textContent = t('hint_point');
   } else if (mode === 'polygon') {
     document.getElementById('ann-btn-add').style.display    = 'none';
     document.getElementById('ann-btn-finish').style.display = 'none';
     document.getElementById('ann-btn-cancel').style.display = 'none';
-    if (hint) hint.textContent = 'Clic para vertices — doble clic para cerrar el área';
+    if (hint) hint.textContent = t('hint_polygon');
   } else if (mode === 'line') {
     document.getElementById('ann-btn-add').style.display    = 'none';
     document.getElementById('ann-btn-finish').style.display = 'none';
     document.getElementById('ann-btn-cancel').style.display = 'none';
-    if (hint) hint.textContent = 'Clic para vertices - doble clic para finalizar';
+    if (hint) hint.textContent = t('hint_line');
   } else if (mode === 'profile') {
     document.getElementById('ann-btn-add').style.display    = 'none';
     document.getElementById('ann-btn-finish').style.display = 'block';
-    document.getElementById('ann-btn-finish').textContent   = '&#9650; GENERAR PERFIL';
+    document.getElementById('ann-btn-finish').textContent   = (_lang==='en'?'&#9650; GENERATE PROFILE':'&#9650; GENERAR PERFIL');
     document.getElementById('ann-btn-cancel').style.display = 'none';
     if (hint) hint.textContent = 'Clic para puntos del perfil - doble clic para generar';
   }
@@ -4080,8 +4856,8 @@ function finishPolyAnn() {
     codigo: generateCode(type),
     title: title, type: type, notes: notes,
     severidad:  sevInputP  && sevInputP.value  !== '' ? parseInt(sevInputP.value) : null,
-    componente: compInputP ? (compInputP.value || null) : null,
-    elemento:   elemInputP ? (elemInputP.value || null) : null,
+    componente: normalizeToES(compInputP ? compInputP.value : null, elemInputP ? elemInputP.value : null).componente,
+    elemento:   normalizeToES(compInputP ? compInputP.value : null, elemInputP ? elemInputP.value : null).elemento,
     geom: 'polygon', visible: true,
     entities: ents,
     vertices: vertices,
@@ -4205,8 +4981,8 @@ function finishLineAnn() {
     geom: 'line',
     notes: notes,
     severidad:  sevInputL  && sevInputL.value  !== '' ? parseInt(sevInputL.value) : null,
-    componente: compInputL ? (compInputL.value || null) : null,
-    elemento:   elemInputL ? (elemInputL.value || null) : null,
+    componente: normalizeToES(compInputL ? compInputL.value : null, elemInputL ? elemInputL.value : null).componente,
+    elemento:   normalizeToES(compInputL ? compInputL.value : null, elemInputL ? elemInputL.value : null).elemento,
     length: totalDist,
     vertexCount: _linePts.length,
     vertices: vertices,
@@ -4387,8 +5163,8 @@ function addAnnotationFromForm() {
     type,
     notes,
     severidad:   sevVal !== '' ? parseInt(sevVal) : null,
-    componente:  compInput ? (compInput.value || null) : null,
-    elemento:    elemInput ? (elemInput.value || null) : null,
+    componente:  normalizeToES(compInput ? compInput.value : null, elemInput ? elemInput.value : null).componente,
+    elemento:    normalizeToES(compInput ? compInput.value : null, elemInput ? elemInput.value : null).elemento,
     geom: 'point',
     visible: true,
     entities: [],
@@ -4442,42 +5218,34 @@ function renderAnnotationList() {
   document.getElementById('ann-count').textContent = annotations.length;
   const TRASH = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>';
   const TYPES = [
-    {v:'fisura',        l:'Fisura'},
-    {v:'crack',         l:'Grieta'},
-    {v:'desconchadura', l:'Desconchadura'},
-    {v:'rebar',         l:'Acero expuesto'},
-    {v:'corrosion',     l:'Corrosión'},
-    {v:'carbonatacion', l:'Carbonatación'},
-    {v:'humedad',       l:'Humedad'},
-    {v:'eflorecencias', l:'Eflorescencias'},
-    {v:'socavacion',    l:'Socavación'},
-    {v:'bache',         l:'Bache'},
-    {v:'pintura',       l:'Pintura'},
-    {v:'erosion',       l:'Erosión'},
-    {v:'asolve',        l:'Asolve'},
-    {v:'vegetacion',    l:'Vegetación'},
-    {v:'anclajes',      l:'Anclajes'},
-    {v:'impactos',      l:'Impactos'},
-    {v:'vandalismo',    l:'Vandalismo'},
-    {v:'other',         l:'Otro'},
+    {v:'fisura',        l:t('type_fisura')},
+    {v:'crack',         l:t('type_crack')},
+    {v:'desconchadura', l:t('type_desconchadura')},
+    {v:'rebar',         l:t('type_rebar')},
+    {v:'corrosion',     l:t('type_corrosion')},
+    {v:'carbonatacion', l:t('type_carbonatacion')},
+    {v:'humedad',       l:t('type_humedad')},
+    {v:'eflorecencias', l:t('type_eflorecencias')},
+    {v:'socavacion',    l:t('type_socavacion')},
+    {v:'bache',         l:t('type_bache')},
+    {v:'pintura',       l:t('type_pintura')},
+    {v:'erosion',       l:t('type_erosion')},
+    {v:'asolve',        l:t('type_asolve')},
+    {v:'vegetacion',    l:t('type_vegetacion')},
+    {v:'anclajes',      l:t('type_anclajes')},
+    {v:'impactos',      l:t('type_impactos')},
+    {v:'vandalismo',    l:t('type_vandalismo')},
+    {v:'other',         l:t('type_other')},
   ];
 
   var visibleAnns = getFilteredAnnotations();
   list.innerHTML = visibleAnns.map(function(a) {
     const i      = annotations.indexOf(a);
-    const TAG_MAP = {
-      fisura:'FISURA', crack:'GRIETA', desconchadura:'DESCONCH.', rebar:'ACERO',
-      corrosion:'CORROS.', carbonatacion:'CARBON.', humedad:'HUMEDAD',
-      eflorecencias:'EFLORESC.', socavacion:'SOCAV.', bache:'BACHE',
-      pintura:'PINTURA', erosion:'EROSIÓN', asolve:'ASOLVE',
-      vegetacion:'VEGET.', anclajes:'ANCLAJES', impactos:'IMPACTO',
-      vandalismo:'VANDAL.', other:'OTRO'
-    };
-    const tag = TAG_MAP[a.type] || a.type.toUpperCase();
+    const tag = (t('type_'+a.type)||a.type).toUpperCase().substring(0,8);
     const icon   = a.geom==='line' ? '&#9135; ' : a.geom==='polygon' ? '&#11042; ' : '&#9679; ';
     const isOpen = _expandedAnnId === a.id;
 
-    const SEV_LABELS = ['Sin daño','Muy leve','Leve','Moderado','Severo','Muy severo'];
+    const SEV_LABELS = [t('sev_0').split(' — ')[1]||'Sin daño', t('sev_1').split(' — ')[1]||'Muy leve', t('sev_2').split(' — ')[1]||'Leve', t('sev_3').split(' — ')[1]||'Moderado', t('sev_4').split(' — ')[1]||'Severo', t('sev_5').split(' — ')[1]||'Muy severo'];
     const SEV_COLORS = ['#636e72','#00b894','#fdcb6e','#e17055','#d63031','#6c5ce7'];
     const sevBadge = (a.severidad !== null && a.severidad !== undefined)
       ? '<span style="background:'+SEV_COLORS[a.severidad]+';color:#fff;font-size:9px;padding:1px 5px;border-radius:2px;margin-left:4px;font-family:var(--text-cond);letter-spacing:0.5px;">'+a.severidad+' — '+SEV_LABELS[a.severidad]+'</span>'
@@ -4499,7 +5267,7 @@ function renderAnnotationList() {
     if (a.vertices && a.vertices.length > 0) {
       var v0 = a.vertices[0];
       coordDetail = 'LAT: '+parseFloat(v0.lat).toFixed(8)+'<br>LON: '+parseFloat(v0.lon).toFixed(8)+'<br>ALT: '+parseFloat(v0.alt||0).toFixed(3)+' m'
-        +(a.vertices.length>1?'<br><span style="color:var(--accent)">'+a.vertices.length+' vertices</span>':'');
+        +(a.vertices.length>1?'<br><span style="color:var(--accent)">'+a.vertices.length+' '+(_lang==='en'?'vertices':'vértices')+'</span>':'');
     } else if (a.coords) {
       coordDetail = 'LAT: '+a.coords.lat+'<br>LON: '+a.coords.lon+'<br>ALT: '+a.coords.alt+' m';
     }
@@ -4517,57 +5285,57 @@ function renderAnnotationList() {
         +lineInfo+coordInfo
       +'</div>'
       +'<div class="ann-detail'+(isOpen?' open':'')+'" onclick="event.stopPropagation()">'
-        +'<div class="ann-detail-row"><div class="ann-detail-label">TÍTULO</div>'
+        +'<div class="ann-detail-row"><div class="ann-detail-label">'+t('edit_title')+'</div>'
           +'<input type="text" id="edit-title-'+i+'" value="'+safeTitle+'"></div>'
-        +'<div class="ann-detail-row"><div class="ann-detail-label">TIPO DE DAÑO</div>'
+        +'<div class="ann-detail-row"><div class="ann-detail-label">'+t('edit_type')+'</div>'
           +'<select id="edit-type-'+i+'">'+typeOpts+'</select></div>'
-        +'<div class="ann-detail-row"><div class="ann-detail-label">NOTAS</div>'
+        +'<div class="ann-detail-row"><div class="ann-detail-label">'+t('edit_notes')+'</div>'
           +'<textarea id="edit-notes-'+i+'" rows="3">'+safeNotes+'</textarea></div>'
-        +'<div class="ann-detail-row"><div class="ann-detail-label">SEVERIDAD</div>'
+        +'<div class="ann-detail-row"><div class="ann-detail-label">'+t('edit_sev')+'</div>'
           +'<select id="edit-sev-'+i+'" style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:2px;color:var(--text);font-family:var(--text-mono);font-size:11px;padding:4px 6px;width:100%;box-sizing:border-box;">'
-          +'<option value="">'+((!a.severidad&&a.severidad!==0)?'selected':'')+'>— Sin clasificar —</option>'
-          +'<option value="0"'+(a.severidad===0?' selected':'')+'>0 — Sin daño</option>'
-          +'<option value="1"'+(a.severidad===1?' selected':'')+'>1 — Muy leve</option>'
-          +'<option value="2"'+(a.severidad===2?' selected':'')+'>2 — Leve</option>'
-          +'<option value="3"'+(a.severidad===3?' selected':'')+'>3 — Moderado</option>'
-          +'<option value="4"'+(a.severidad===4?' selected':'')+'>4 — Severo</option>'
-          +'<option value="5"'+(a.severidad===5?' selected':'')+'>5 — Muy severo</option>'
+          +'<option value="">'+((!a.severidad&&a.severidad!==0)?'selected':'')+'>'+t('sev_none')+'</option>'
+          +'<option value="0"'+(a.severidad===0?' selected':'')+'>'+t('sev_0')+'</option>'
+          +'<option value="1"'+(a.severidad===1?' selected':'')+'>'+t('sev_1')+'</option>'
+          +'<option value="2"'+(a.severidad===2?' selected':'')+'>'+t('sev_2')+'</option>'
+          +'<option value="3"'+(a.severidad===3?' selected':'')+'>'+t('sev_3')+'</option>'
+          +'<option value="4"'+(a.severidad===4?' selected':'')+'>'+t('sev_4')+'</option>'
+          +'<option value="5"'+(a.severidad===5?' selected':'')+'>'+t('sev_5')+'</option>'
           +'</select></div>'
-        +'<div class="ann-detail-row"><div class="ann-detail-label">COMPONENTE</div>'
+        +'<div class="ann-detail-row"><div class="ann-detail-label">'+t('edit_comp')+'</div>'
           +'<select id="edit-comp-'+i+'" onchange="onCompChange(this.id,&quot;edit-elem-'+i+'&quot;)" style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:2px;color:var(--text);font-family:var(--text-mono);font-size:11px;padding:4px 6px;width:100%;box-sizing:border-box;">'
-          +'<option value="">— Sin componente —</option>'
-          +Object.keys(BRIDGE_COMPONENTS).map(function(k){ return '<option value="'+k+'"'+(a.componente===k?' selected':'')+'>'+k+'</option>'; }).join('')
+          +'<option value="">'+(_lang==='en'?'— No component —':'— Sin componente —')+'</option>'
+          +Object.keys(BRIDGE_COMPONENTS_ES).map(function(k){ var disp=displayComp(k); return '<option value="'+k+'"'+(a.componente===k?' selected':'')+'>'+disp+'</option>'; }).join('')
           +'</select></div>'
-        +'<div class="ann-detail-row"><div class="ann-detail-label">ELEMENTO</div>'
+        +'<div class="ann-detail-row"><div class="ann-detail-label">'+t('edit_elem')+'</div>'
           +'<select id="edit-elem-'+i+'" style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:2px;color:var(--text);font-family:var(--text-mono);font-size:11px;padding:4px 6px;width:100%;box-sizing:border-box;">'
-          +'<option value="">— Sin elemento —</option>'
-          +(a.componente && BRIDGE_COMPONENTS[a.componente] ? BRIDGE_COMPONENTS[a.componente].map(function(e){ return '<option value="'+e+'"'+(a.elemento===e?' selected':'')+'>'+e+'</option>'; }).join('') : '')
+          +'<option value="">'+(_lang==='en'?'— No element —':'— Sin elemento —')+'</option>'
+          +(a.componente && BRIDGE_COMPONENTS_ES[a.componente] ? BRIDGE_COMPONENTS_ES[a.componente].map(function(e){ return '<option value="'+e+'"'+(a.elemento===e?' selected':'')+'>'+displayElem(e)+'</option>'; }).join('') : '')
           +'</select></div>'
-        +'<div class="ann-detail-row"><div class="ann-detail-label">CÓDIGO</div>'
+        +'<div class="ann-detail-row"><div class="ann-detail-label">'+t('edit_code')+'</div>'
           +'<div style="font-family:var(--text-mono);font-size:13px;font-weight:bold;color:var(--accent);letter-spacing:2px;">'+(a.codigo||'—')+'</div></div>'
-        +'<div class="ann-detail-row"><div class="ann-detail-label">COORDENADAS</div>'
+        +'<div class="ann-detail-row"><div class="ann-detail-label">'+t('edit_coords')+'</div>'
           +'<div class="ann-coords-detail">'+coordDetail+'</div></div>'
-        +'<button class="ann-save-btn" onclick="saveAnnotation('+i+')">&#10003; GUARDAR CAMBIOS</button>'
+        +'<button class="ann-save-btn" onclick="saveAnnotation('+i+')">&#10003; '+t('btn_save').replace('✓ ','')+'</button>'
         +'<div class="ann-detail-row" style="margin-top:6px;">'
-          +'<div class="ann-detail-label">FOTO</div>'
+          +'<div class="ann-detail-label">'+t('edit_photo')+'</div>'
           +(a.foto
             ? '<img class="ann-photo-thumb" src="'+a.foto+'" onclick="openPhotoModal('+i+')" title="Ver foto completa">'
-              +'<button class="ann-photo-btn" style="border-color:#ff4444;color:#ff4444;" onclick="removePhoto('+i+')">&#10005; ELIMINAR FOTO</button>'
-            : '<button class="ann-photo-btn" onclick="triggerPhotoInput('+i+')">&#128247; ADJUNTAR FOTO</button>'
+              +'<button class="ann-photo-btn" style="border-color:#ff4444;color:#ff4444;" onclick="removePhoto('+i+')">&#10005; '+t('btn_remove_photo').replace('✕ ','')+'</button>'
+            : '<button class="ann-photo-btn" onclick="triggerPhotoInput('+i+')">&#128247; '+t('btn_attach_photo').replace('📷 ','')+'</button>'
               +'<input type="file" id="photo-input-'+i+'" accept="image/*" style="display:none;" onchange="attachPhoto('+i+',this)">'
           )
         +'</div>'
         +'<div style="display:flex;justify-content:flex-end;gap:5px;margin-top:5px;">'
-          +'<button class="ann-del-btn" onclick="toggleAnnVisibility('+i+')" title="'+(a.visible===false?'Mostrar':'Ocultar')+' anotación" style="border-color:'+(a.visible===false?'#ffd166':'var(--border)')+';color:'+(a.visible===false?'#ffd166':'var(--text-dim')+');">'
+          +'<button class="ann-del-btn" onclick="toggleAnnVisibility('+i+')" title="'+(a.visible===false?t('btn_show'):t('btn_hide'))+' ..." style="border-color:'+(a.visible===false?'#ffd166':'var(--border)')+';color:'+(a.visible===false?'#ffd166':'var(--text-dim')+');">'
           +(a.visible===false
-            ? '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19M1 1l22 22"/></svg> MOSTRAR'
-            : '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> OCULTAR'
+            ? '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19M1 1l22 22"/></svg> '+t('btn_show')
+            : '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> '+t('btn_hide')
           )+'</button>'
-          +'<button class="ann-del-btn" onclick="deleteAnnotation('+i+')" title="Eliminar">'+TRASH+' BORRAR</button>'
+          +'<button class="ann-del-btn" onclick="deleteAnnotation('+i+')" title="'+t('btn_delete')+'">'+TRASH+' '+t('btn_delete')+'</button>'
         +'</div>'
       +'</div>'
     +'</div>';
-  }).join('') || '<div style="padding:16px;text-align:center;font-family:var(--text-cond);font-size:10px;color:var(--text-dim);letter-spacing:1px;">SIN RESULTADOS<br><span style=\"font-size:9px;margin-top:4px;display:block;\">Ajusta o limpia los filtros</span></div>';
+  }).join('') || '<div style="padding:16px;text-align:center;font-family:var(--text-cond);font-size:10px;color:var(--text-dim);letter-spacing:1px;">'+t('no_results')+'<br><span style=\"font-size:9px;margin-top:4px;display:block;\">'+t('no_results_sub')+'</span></div>';
 }
 
 // ── FOTOS EN ANOTACIONES ────────────────────────────────────────────────────
@@ -4615,12 +5383,12 @@ function openPhotoModal(idx) {
   var cap   = document.getElementById('photo-modal-caption');
   img.src = ann.foto;
   cap.textContent = ann.title + (ann.fotoNombre ? '  —  ' + ann.fotoNombre : '');
-  modal.classList.add('open');
+  modal.style.display = 'flex';
 }
 
 function closePhotoModal() {
   var modal = document.getElementById('photo-modal');
-  modal.classList.remove('open');
+  modal.style.display = 'none';
   document.getElementById('photo-modal-img').src = '';
 }
 
@@ -4753,7 +5521,7 @@ function toggleAllAnnotations() {
       });
     }
   });
-  showToast(_allAnnotationsVisible ? 'Anotaciones visibles' : 'Anotaciones ocultas');
+  showToast(_allAnnotationsVisible ? t('toast_ann_visible') : t('toast_ann_hidden'));
 }
 
 function toggleAnnVisibility(idx) {
@@ -4785,8 +5553,11 @@ function saveAnnotation(idx) {
   ann.severidad  = sevVal !== '' ? parseInt(sevVal) : null;
   var compEl     = document.getElementById('edit-comp-'+idx);
   var elemEl     = document.getElementById('edit-elem-'+idx);
-  ann.componente = compEl ? (compEl.value || null) : ann.componente;
-  ann.elemento   = elemEl ? (elemEl.value || null) : ann.elemento;
+  if (compEl && compEl.value !== undefined) {
+    var normSave = normalizeToES(compEl.value || null, elemEl ? (elemEl.value || null) : null);
+    ann.componente = normSave.componente;
+    ann.elemento   = normSave.elemento;
+  }
 
   var col = Cesium.Color.fromCssColorString(_ANN_COLORS[ann.type] || '#c8d6e5');
   var distText = ann.length
@@ -5287,10 +6058,6 @@ function toggleWireframe(el) {
   }
 }
 
-function toggleShadow(el) {
-  el.classList.toggle('on');
-  viewer.shadows = el.classList.contains('on');
-}
 
 
 // ── CLIPPING ──
@@ -5589,152 +6356,142 @@ showToast('INSPECTWIN listo — carga un modelo 3D Tiles o .GLB');
 
   // Actualizar en cada frame de Cesium
   viewer.scene.postRender.addEventListener(drawAxes);
-})();
+}());
+
+// Restaurar tema e idioma al cargar (después de toda la inicialización)
+window.addEventListener('load', function() {
+  // Colapsar secciones del panel derecho por defecto
+  ['sec-viz', 'sec-nav', 'sec-clip'].forEach(function(sid) {
+    var body = document.getElementById(sid + '-body');
+    var lbl  = document.getElementById(sid + '-lbl');
+    if (body) body.classList.add('collapsed');
+    if (lbl)  lbl.classList.add('collapsed');
+  });
+
+  setTimeout(function() {
+    try {
+      if (localStorage.getItem('inspectwin-theme') === 'light') {
+        toggleTheme();
+      }
+    } catch(e) {}
+    try {
+      var savedLang = localStorage.getItem('inspectwin-lang');
+      if (savedLang && savedLang !== 'es') {
+        _lang = savedLang;
+        var label = document.getElementById('lang-label');
+        if (label) label.textContent = _lang.toUpperCase();
+        applyLang();
+      }
+    } catch(e) {}
+  }, 1200);
+});
 </script>
-
-  <!-- Panel flotante de perfil -->
-  <div id="profile-panel" style="
-    display:none; position:absolute; bottom:60px; left:260px; right:260px;
-    background:rgba(10,12,15,0.95); border:1px solid var(--border);
-    border-radius:4px; padding:12px; z-index:50; backdrop-filter:blur(6px);
-    min-height:180px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-      <span style="font-family:var(--text-cond);font-size:11px;letter-spacing:2px;color:var(--accent);">PERFIL TOPOGRÁFICO</span>
-      <div style="display:flex;gap:6px;">
-        <button onclick="exportProfileCSV()" style="background:transparent;border:1px solid var(--border);color:var(--text-dim);font-family:var(--text-cond);font-size:10px;letter-spacing:1px;padding:3px 8px;border-radius:2px;cursor:pointer;">↓ CSV</button>
-        <button onclick="closeProfile()" style="background:transparent;border:1px solid var(--border);color:var(--text-dim);font-family:var(--text-cond);font-size:10px;padding:3px 8px;border-radius:2px;cursor:pointer;">✕</button>
-      </div>
-    </div>
-    <canvas id="profile-canvas" width="700" height="140" style="width:100%;height:140px;"></canvas>
-    <div id="profile-info" style="font-family:var(--text-mono);font-size:10px;color:var(--text-dim);margin-top:6px;display:flex;gap:20px;"></div>
-  </div>
-  <!-- Panel de resumen -->
-  <div id="summary-modal" onclick="if(event.target===this)closeSummary()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;
-    background:rgba(0,0,0,0.75);z-index:9000;align-items:center;justify-content:center;">
-    <div style="background:var(--panel);border:1px solid var(--border);border-radius:6px;
-      width:580px;max-width:95vw;max-height:85vh;overflow-y:auto;padding:24px;position:relative;">
-
-      <!-- Header -->
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border);">
-        <div>
-          <div style="font-family:var(--text-cond);font-size:16px;letter-spacing:3px;color:var(--accent);">RESUMEN DE INSPECCIÓN</div>
-          <div id="sum-fecha" style="font-family:var(--text-mono);font-size:10px;color:var(--text-dim);margin-top:3px;"></div>
-        </div>
-        <button onclick="closeSummary()" style="background:transparent;border:1px solid var(--border);color:var(--text-dim);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;">&#10005;</button>
-      </div>
-
-      <!-- Totales -->
-      <div id="sum-totales" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;"></div>
-
-      <!-- Por tipo de deterioro -->
-      <div style="margin-bottom:20px;">
-        <div style="font-family:var(--text-cond);font-size:11px;letter-spacing:2px;color:var(--text-dim);margin-bottom:10px;">POR TIPO DE DETERIORO</div>
-        <div id="sum-tipos"></div>
-      </div>
-
-      <!-- Por severidad -->
-      <div style="margin-bottom:20px;">
-        <div style="font-family:var(--text-cond);font-size:11px;letter-spacing:2px;color:var(--text-dim);margin-bottom:10px;">POR SEVERIDAD</div>
-        <div id="sum-severidad"></div>
-      </div>
-
-      <!-- Métricas -->
-      <div style="margin-bottom:20px;">
-        <div style="font-family:var(--text-cond);font-size:11px;letter-spacing:2px;color:var(--text-dim);margin-bottom:10px;">MÉTRICAS CUANTITATIVAS</div>
-        <div id="sum-metricas"></div>
-      </div>
-
-      <!-- Por componente -->
-      <div style="margin-bottom:20px;">
-        <div style="font-family:var(--text-cond);font-size:11px;letter-spacing:2px;color:var(--text-dim);margin-bottom:10px;">POR COMPONENTE Y ELEMENTO</div>
-        <div id="sum-componentes"></div>
-      </div>
-
-      <!-- Modelos cargados -->
-      <div id="sum-modelos-wrap" style="margin-bottom:12px;">
-        <div style="font-family:var(--text-cond);font-size:11px;letter-spacing:2px;color:var(--text-dim);margin-bottom:10px;">MODELOS CARGADOS</div>
-        <div id="sum-modelos"></div>
-      </div>
-
-    </div>
-  </div>
 
   <!-- Modal de Reporte -->
   <div id="report-modal" onclick="if(event.target===this)closeReport()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;
     background:rgba(0,0,0,0.85);z-index:9100;align-items:flex-start;justify-content:center;overflow-y:auto;padding:20px 0;">
     <div style="background:#fff;width:760px;max-width:96vw;border-radius:6px;position:relative;margin:auto;">
-
-      <!-- Barra de acciones (no se imprime) -->
       <div class="no-print" style="background:#1a1f2e;display:flex;justify-content:space-between;align-items:center;
         padding:12px 20px;border-radius:6px 6px 0 0;border-bottom:2px solid #00d4ff;">
-        <span style="color:#00d4ff;font-family:monospace;font-size:13px;letter-spacing:2px;">REPORTE DE INSPECCIÓN</span>
+        <span style="color:#00d4ff;font-family:monospace;font-size:13px;letter-spacing:2px;">REPORTE DE DETERIOROS</span>
         <div style="display:flex;gap:8px;">
-          <button onclick="editBridgeData()" style="background:transparent;border:1px solid #555;color:#aaa;
+          <button id="btn-report-edit" onclick="editBridgeData()" style="background:transparent;border:1px solid #555;color:#aaa;
             padding:6px 14px;border-radius:3px;cursor:pointer;font-family:monospace;font-size:11px;letter-spacing:1px;">✎ EDITAR DATOS</button>
-          <button onclick="printReport()" style="background:#00d4ff;border:none;color:#000;
+          <button id="btn-report-print" onclick="printReport()" style="background:#00d4ff;border:none;color:#000;
             padding:6px 16px;border-radius:3px;cursor:pointer;font-family:monospace;font-size:11px;letter-spacing:1px;font-weight:bold;">↓ DESCARGAR PDF</button>
           <button onclick="closeReport()" style="background:transparent;border:1px solid #555;color:#aaa;
             width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
         </div>
       </div>
-
-      <!-- Contenido imprimible -->
       <div id="report-content" style="padding:30px 40px;color:#111;font-family:Arial,sans-serif;font-size:12px;"></div>
-
     </div>
   </div>
 
-  <!-- Modal de formulario datos del puente -->
+  <!-- Modal formulario datos del puente -->
   <div id="bridge-form-modal" onclick="if(event.target===this)closeBridgeForm()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;
     background:rgba(0,0,0,0.85);z-index:9200;align-items:center;justify-content:center;">
     <div style="background:var(--panel);border:1px solid var(--border);border-radius:6px;
       width:540px;max-width:95vw;max-height:90vh;overflow-y:auto;padding:24px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border);">
-        <span style="font-family:var(--text-cond);font-size:14px;letter-spacing:3px;color:var(--accent);">DATOS DEL PUENTE</span>
+        <span id="lbl-bridge-form-title" style="font-family:var(--text-cond);font-size:14px;letter-spacing:3px;color:var(--accent);">DATOS DEL PUENTE</span>
         <button onclick="closeBridgeForm()" style="background:transparent;border:1px solid var(--border);color:var(--text-dim);width:28px;height:28px;border-radius:50%;cursor:pointer;">✕</button>
       </div>
-
       <div style="display:grid;gap:10px;">
-        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;">FECHA DEL LEVANTAMIENTO</label>
+        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;" data-t="bf_fecha"><span class="bf-lbl" data-key="bf_fecha">FECHA DEL LEVANTAMIENTO</span></label>
           <input type="date" id="bf-fecha" class="ann-input"></div>
-        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;">NOMBRE DEL ESPECIALISTA</label>
+        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;" data-t="bf_especialista"><span class="bf-lbl" data-key="bf_especialista">NOMBRE DEL ESPECIALISTA</span></label>
           <input type="text" id="bf-especialista" class="ann-input" placeholder="Ing. Nombre Apellido"></div>
-        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;">NOMBRE DEL PUENTE</label>
+        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;" data-t="bf_nombre"><span class="bf-lbl" data-key="bf_nombre">NOMBRE DEL PUENTE</span></label>
           <input type="text" id="bf-nombre" class="ann-input" placeholder="Nombre oficial del puente"></div>
-        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;">TIPO DE RED</label>
+        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;" data-t="bf_red"><span class="bf-lbl" data-key="bf_red">TIPO DE RED</span></label>
           <select id="bf-red" class="ann-input">
             <option value="">— Seleccionar —</option>
             <option value="Consesionada">Consesionada</option>
             <option value="SCT">SCT</option>
             <option value="CAPUFE">CAPUFE</option>
           </select></div>
-        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;">TIPO DE ESTRUCTURA</label>
+        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;" data-t="bf_estructura"><span class="bf-lbl" data-key="bf_estructura">TIPO DE ESTRUCTURA</span></label>
           <select id="bf-estructura" class="ann-input">
             <option value="">— Seleccionar —</option>
             <option>PUENTE</option><option>PSV</option><option>PIV</option>
             <option>PIPR</option><option>PIPG</option><option>PSPG</option>
             <option>PIFC</option><option>PSFC</option><option>ENTRONQUE</option>
           </select></div>
-        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;">KILOMETRAJE AL CENTRO DEL PUENTE</label>
+        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;" data-t="bf_km"><span class="bf-lbl" data-key="bf_km">KILOMETRAJE AL CENTRO DEL PUENTE</span></label>
           <input type="text" id="bf-km" class="ann-input" placeholder="ej. 123+456"></div>
-        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;">ENTIDAD FEDERATIVA</label>
+        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;" data-t="bf_entidad"><span class="bf-lbl" data-key="bf_entidad">ENTIDAD FEDERATIVA</span></label>
           <input type="text" id="bf-entidad" class="ann-input" placeholder="ej. Michoacán"></div>
-        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;">MUNICIPIO</label>
+        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;" data-t="bf_municipio"><span class="bf-lbl" data-key="bf_municipio">MUNICIPIO</span></label>
           <input type="text" id="bf-municipio" class="ann-input" placeholder="ej. Morelia"></div>
-        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;">LOCALIDAD</label>
+        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;" data-t="bf_localidad"><span class="bf-lbl" data-key="bf_localidad">LOCALIDAD</span></label>
           <input type="text" id="bf-localidad" class="ann-input" placeholder="ej. Col. Centro"></div>
-        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;">COORDENADAS GEOGRÁFICAS AL CENTRO</label>
+        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;" data-t="bf_coords"><span class="bf-lbl" data-key="bf_coords">COORDENADAS GEOGRÁFICAS AL CENTRO</span></label>
           <input type="text" id="bf-coords" class="ann-input" placeholder="ej. 19.6145°N, -101.3090°W"></div>
-        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;">T.D.P.A.</label>
+        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;" data-t="bf_tdpa"><span class="bf-lbl" data-key="bf_tdpa">T.D.P.A.</span></label>
           <input type="number" id="bf-tdpa" class="ann-input" placeholder="Tránsito diario promedio anual"></div>
-        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;">AÑO DE CONSTRUCCIÓN</label>
+        <div><label style="font-family:var(--text-cond);font-size:10px;letter-spacing:1.5px;color:var(--text-dim);display:block;margin-bottom:4px;" data-t="bf_anio"><span class="bf-lbl" data-key="bf_anio">AÑO DE CONSTRUCCIÓN</span></label>
           <input type="number" id="bf-anio" class="ann-input" placeholder="ej. 1985" min="1800" max="2100"></div>
       </div>
-
       <button onclick="saveBridgeDataAndReport()" style="width:100%;margin-top:16px;background:var(--accent);border:none;
         color:#000;font-family:var(--text-cond);font-size:12px;letter-spacing:2px;padding:10px;border-radius:3px;cursor:pointer;font-weight:bold;">
-        ▶ GENERAR REPORTE
+        <span id="btn-generate-text">▶ GENERAR REPORTE</span>
       </button>
+    </div>
+  </div>
+
+  <!-- Panel de resumen -->
+  <div id="summary-modal" onclick="if(event.target===this)closeSummary()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;
+    background:rgba(0,0,0,0.75);z-index:9000;align-items:center;justify-content:center;">
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:6px;
+      width:580px;max-width:95vw;max-height:85vh;overflow-y:auto;padding:24px;position:relative;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+        <div>
+          <div style="font-family:var(--text-cond);font-size:16px;letter-spacing:3px;color:var(--accent);" id="lbl-summary-title">RESUMEN DE INSPECCIÓN</div>
+          <div id="sum-fecha" style="font-family:var(--text-mono);font-size:10px;color:var(--text-dim);margin-top:3px;"></div>
+        </div>
+        <button onclick="closeSummary()" style="background:transparent;border:1px solid var(--border);color:var(--text-dim);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
+      </div>
+      <div id="sum-totales" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;"></div>
+      <div style="margin-bottom:20px;">
+        <div style="font-family:var(--text-cond);font-size:11px;letter-spacing:2px;color:var(--text-dim);margin-bottom:10px;" id="sum-lbl-sum_by_type">POR TIPO DE DETERIORO</div>
+        <div id="sum-tipos"></div>
+      </div>
+      <div style="margin-bottom:20px;">
+        <div style="font-family:var(--text-cond);font-size:11px;letter-spacing:2px;color:var(--text-dim);margin-bottom:10px;" id="sum-lbl-sum_by_sev">POR SEVERIDAD</div>
+        <div id="sum-severidad"></div>
+      </div>
+      <div style="margin-bottom:20px;">
+        <div style="font-family:var(--text-cond);font-size:11px;letter-spacing:2px;color:var(--text-dim);margin-bottom:10px;" id="sum-lbl-sum_metrics">MÉTRICAS CUANTITATIVAS</div>
+        <div id="sum-metricas"></div>
+      </div>
+      <div style="margin-bottom:20px;">
+        <div style="font-family:var(--text-cond);font-size:11px;letter-spacing:2px;color:var(--text-dim);margin-bottom:10px;" id="sum-lbl-sum_by_comp">POR COMPONENTE Y ELEMENTO</div>
+        <div id="sum-componentes"></div>
+      </div>
+      <div id="sum-modelos-wrap" style="margin-bottom:12px;">
+        <div style="font-family:var(--text-cond);font-size:11px;letter-spacing:2px;color:var(--text-dim);margin-bottom:10px;" id="sum-lbl-sum_models">MODELOS CARGADOS</div>
+        <div id="sum-modelos"></div>
+      </div>
     </div>
   </div>
 
@@ -5744,42 +6501,145 @@ showToast('INSPECTWIN listo — carga un modelo 3D Tiles o .GLB');
     align-items:center;justify-content:center;flex-direction:column;">
     <div style="background:var(--panel);border:1px solid var(--border);border-radius:6px;
       width:700px;max-width:95vw;overflow:hidden;">
-      <!-- Header -->
       <div style="display:flex;justify-content:space-between;align-items:center;
         padding:10px 14px;border-bottom:1px solid var(--border);">
-        <span style="font-family:var(--text-cond);font-size:12px;letter-spacing:2px;color:var(--accent);">&#128247; CAPTURA DE PANTALLA</span>
+        <span style="font-family:var(--text-cond);font-size:12px;letter-spacing:2px;color:var(--accent);">📷 CAPTURA DE PANTALLA</span>
         <button onclick="closeScreenshot()" style="background:transparent;border:1px solid var(--border);
-          color:var(--text-dim);width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:14px;">&#10005;</button>
+          color:var(--text-dim);width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:14px;">✕</button>
       </div>
-      <!-- Vista previa -->
       <div style="padding:12px;">
         <img id="screenshot-preview" src="" alt="Captura" style="width:100%;border-radius:3px;
           border:1px solid var(--border);display:block;">
       </div>
-      <!-- Botones -->
       <div style="display:flex;gap:8px;padding:0 12px 12px;">
         <input type="text" id="screenshot-name" placeholder="nombre-captura"
           style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--border);
           border-radius:2px;color:var(--text);font-family:var(--text-mono);font-size:11px;padding:6px 8px;">
         <button onclick="downloadScreenshot()" style="background:rgba(255,209,102,0.15);
           border:1px solid #ffd166;color:#ffd166;font-family:var(--text-cond);font-size:11px;
-          letter-spacing:1px;padding:6px 16px;border-radius:2px;cursor:pointer;">
-          &#8659; DESCARGAR PNG
-        </button>
+          letter-spacing:1px;padding:6px 16px;border-radius:2px;cursor:pointer;">⬇ DESCARGAR PNG</button>
         <button onclick="closeScreenshot()" style="background:transparent;border:1px solid var(--border);
           color:var(--text-dim);font-family:var(--text-cond);font-size:11px;letter-spacing:1px;
-          padding:6px 12px;border-radius:2px;cursor:pointer;">
-          CERRAR
-        </button>
+          padding:6px 12px;border-radius:2px;cursor:pointer;">CERRAR</button>
       </div>
     </div>
   </div>
 
   <!-- Modal de foto -->
-  <div id="photo-modal" onclick="closePhotoModal()">
-    <button id="photo-modal-close" onclick="closePhotoModal()">&#10005;</button>
-    <img id="photo-modal-img" src="" alt="">
-    <div id="photo-modal-caption"></div>
+  <div id="photo-modal" onclick="closePhotoModal()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;
+    background:rgba(0,0,0,0.92);z-index:9999;align-items:center;justify-content:center;flex-direction:column;">
+    <button id="photo-modal-close" onclick="closePhotoModal()" style="position:absolute;top:16px;right:20px;
+      background:transparent;border:1px solid rgba(255,255,255,0.2);color:white;font-size:20px;
+      width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+    <img id="photo-modal-img" src="" alt="" style="max-width:90vw;max-height:85vh;border-radius:4px;box-shadow:0 0 40px rgba(0,0,0,0.8);">
+    <div id="photo-modal-caption" style="color:rgba(255,255,255,0.6);font-family:var(--text-cond);font-size:11px;letter-spacing:1px;margin-top:12px;"></div>
   </div>
+
+  <!-- Modal de ayuda -->
+  <div id="help-modal" onclick="if(event.target===this)closeHelp()" style="display:none;position:fixed;
+    top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.88);z-index:9400;
+    align-items:center;justify-content:center;">
+    <div style="background:#0d1b2a;border:1px solid rgba(0,212,255,0.2);border-radius:8px;
+      width:820px;max-width:96vw;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.7);">
+      <!-- Header -->
+      <div style="background:linear-gradient(135deg,#1a3a5c,#0d2137);padding:16px 24px;
+        display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <span style="font-family:var(--text-cond);font-size:13px;letter-spacing:3px;color:#00d4ff;" id="help-modal-title">MANUAL DE USO</span>
+          <span style="font-family:var(--text-mono);font-size:10px;color:rgba(255,255,255,0.3);margin-left:12px;">INSPECTWIN v1.0</span>
+        </div>
+        <button onclick="closeHelp()" style="background:transparent;border:1px solid rgba(255,255,255,0.2);
+          color:rgba(255,255,255,0.5);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;">✕</button>
+      </div>
+      <!-- Pestañas -->
+      <div class="help-tabs">
+        <button class="help-tab help-tab-active" id="htab-1" onclick="switchHelpTab(1)">Inicio rápido</button>
+        <button class="help-tab" id="htab-2" onclick="switchHelpTab(2)">Modelos 3D</button>
+        <button class="help-tab" id="htab-3" onclick="switchHelpTab(3)">Medición</button>
+        <button class="help-tab" id="htab-4" onclick="switchHelpTab(4)">Anotaciones</button>
+        <button class="help-tab" id="htab-5" onclick="switchHelpTab(5)">Reporte</button>
+        <button class="help-tab" id="htab-6" onclick="switchHelpTab(6)">Navegación</button>
+      </div>
+      <!-- Contenido -->
+      <div class="help-content">
+        <div id="hcont-1"></div>
+        <div id="hcont-2" style="display:none;"></div>
+        <div id="hcont-3" style="display:none;"></div>
+        <div id="hcont-4" style="display:none;"></div>
+        <div id="hcont-5" style="display:none;"></div>
+        <div id="hcont-6" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de información / créditos -->
+  <div id="info-modal" onclick="if(event.target===this)closeInfo()" style="display:none;position:fixed;
+    top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.88);z-index:9500;
+    align-items:center;justify-content:center;">
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:8px;
+      width:480px;max-width:92vw;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.6);">
+      <!-- Header -->
+      <div style="background:linear-gradient(135deg,#1a3a5c,#0d2137);padding:24px 28px 20px;position:relative;">
+        <button onclick="closeInfo()" style="position:absolute;top:14px;right:16px;background:transparent;
+          border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);width:28px;height:28px;
+          border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">✕</button>
+        <div style="font-family:var(--text-cond);font-size:22px;font-weight:bold;color:#00d4ff;letter-spacing:3px;">INSPECTWIN</div>
+        <div style="font-family:var(--text-cond);font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:2px;margin-top:3px;">VISOR 3D DE ACTIVOS FOTOGRAMÉTRICOS</div>
+        <div style="display:inline-block;background:rgba(0,212,255,0.12);border:1px solid rgba(0,212,255,0.3);
+          color:#00d4ff;font-family:var(--text-mono);font-size:10px;padding:2px 8px;border-radius:20px;margin-top:8px;">v1.0 — 2025</div>
+      </div>
+      <!-- Contenido -->
+      <div style="padding:22px 28px;font-family:var(--text-cond);font-size:12px;line-height:1.7;color:var(--text);">
+        <!-- Desarrollador -->
+        <div style="margin-bottom:16px;">
+          <div style="font-size:9px;letter-spacing:2px;color:var(--accent);margin-bottom:5px;">DESARROLLADO POR</div>
+          <div style="font-size:14px;font-weight:bold;color:var(--text);">Ing. José Manuel Díaz Barriga García</div>
+        </div>
+        <!-- Institución -->
+        <div style="margin-bottom:16px;padding:12px 14px;background:rgba(255,255,255,0.03);border-left:3px solid var(--accent);border-radius:0 4px 4px 0;">
+          <div style="font-size:9px;letter-spacing:2px;color:var(--accent);margin-bottom:5px;">INSTITUCIÓN</div>
+          <div style="font-weight:bold;margin-bottom:2px;">Maestría en Infraestructura del Transporte</div>
+          <div style="color:var(--text-dim);font-size:11px;">Rama: Vías Terrestres</div>
+          <div style="color:var(--text-dim);font-size:11px;">Facultad de Ingeniería Civil</div>
+          <div style="color:var(--text-dim);font-size:11px;">Universidad Michoacana de San Nicolás de Hidalgo (UMSNH)</div>
+          <div style="color:var(--text-dim);font-size:11px;">Morelia, Michoacán, México</div>
+        </div>
+        <!-- Asesores -->
+        <div style="margin-bottom:16px;">
+          <div style="font-size:9px;letter-spacing:2px;color:var(--accent);margin-bottom:5px;">ASESORES</div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;"></span>
+              <span>Dr. Luis Alberto Morales Rosales</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;"></span>
+              <span>Dr. José Eleazar Arreygue Rocha</span>
+            </div>
+          </div>
+        </div>
+        <!-- Contacto -->
+        <div style="margin-bottom:18px;">
+          <div style="font-size:9px;letter-spacing:2px;color:var(--accent);margin-bottom:5px;">CONTACTO</div>
+          <a href="mailto:1116803h@umich.mx" style="color:var(--accent);text-decoration:none;font-family:var(--text-mono);font-size:12px;">
+            1116803h@umich.mx
+          </a>
+        </div>
+        <!-- Tecnologías -->
+        <div style="border-top:1px solid var(--border);padding-top:14px;">
+          <div style="font-size:9px;letter-spacing:2px;color:var(--text-dim);margin-bottom:8px;">TECNOLOGÍAS</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:20px;
+              padding:3px 10px;font-size:10px;color:var(--text-dim);font-family:var(--text-mono);">CesiumJS 1.114</span>
+            <span style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:20px;
+              padding:3px 10px;font-size:10px;color:var(--text-dim);font-family:var(--text-mono);">JSZip 3.10</span>
+            <span style="background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:20px;
+              padding:3px 10px;font-size:10px;color:var(--text-dim);font-family:var(--text-mono);">HTML5 / JS</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
