@@ -996,1001 +996,6 @@
     font-size: 10px; letter-spacing: 1px; transition: all 0.15s;
   }
   .eval-ctrl-btn:hover { border-color: #00b894; color: #00b894; }
--8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>INSPECTWIN — Visor 3D de Activos</title>
-
-<!-- CesiumJS -->
-<script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
-<link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
-
-<!-- JSZip para descompresión .3tz / .zip -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-
-
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700&family=Barlow:wght@300;400&display=swap" rel="stylesheet">
-
-<style>
-  :root {
-    --bg:        #0a0c0f;
-    --panel:     #0f1318;
-    --border:    #1e2530;
-    --accent:    #00d4ff;
-    --accent2:   #ff6b2b;
-    --warn:      #ffd166;
-    --text:      #c8d6e5;
-    --text-dim:  #4a5a6e;
-    --text-mono: 'Share Tech Mono', monospace;
-    --text-cond: 'Barlow Condensed', sans-serif;
-    --text-body: 'Barlow', sans-serif;
-    --panel-w:   290px;
-    --toolbar-h: 52px;
-  }
-
-  /* ── MODO CLARO ── */
-  body.light-mode {
-    --bg:       #eef1f5;
-    --panel:    #ffffff;
-    --border:   #d0d7e2;
-    --accent:   #0080aa;
-    --accent2:  #e05a1a;
-    --warn:     #b8920a;
-    --text:     #1a2336;
-    --text-dim: #6b7a92;
-  }
-  body.light-mode #toolbar {
-    background: #ffffff;
-    border-bottom-color: #d0d7e2;
-  }
-  body.light-mode .tool-btn { color: #1a2336; }
-  body.light-mode .tool-btn:hover { color: #0080aa; }
-  body.light-mode .tool-btn.active { color: #0080aa; border-color: #0080aa; background: rgba(0,128,170,0.1); }
-  body.light-mode #demo-banner {
-    background: rgba(0,128,170,0.1);
-    border-color: rgba(0,128,170,0.3);
-    color: #0080aa;
-  }
-  body.light-mode .annotation-item { background: #f5f7fa; border-color: #d0d7e2; }
-  body.light-mode .annotation-item:hover { background: #eaf0f6; }
-  body.light-mode .ann-input, body.light-mode select.ann-input { background: #f0f3f7; border-color: #c8d0dc; color: #1a2336; }
-  body.light-mode .btn-primary { background: rgba(0,128,170,0.15); border-color: #0080aa; color: #0080aa; }
-  body.light-mode .btn-secondary { background: transparent; border-color: #c8d0dc; color: #6b7a92; }
-  body.light-mode .btn-secondary:hover { border-color: #0080aa; color: #0080aa; }
-  body.light-mode .bm-btn { border-color: #c8d0dc; color: #6b7a92; }
-  body.light-mode .bm-btn.bm-active { border-color: #0080aa; color: #0080aa; background: rgba(0,128,170,0.1); }
-  body.light-mode .panel-label { color: #1a2336; }
-  body.light-mode #hud { color: #1a2336; }
-  body.light-mode .model-item { background: #f5f7fa; border-color: #d0d7e2; }
-  body.light-mode .ann-del-btn { border-color: #c8d0dc; }
-  body.light-mode input[type=range] { accent-color: #0080aa; }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--text-body);
-    font-size: 13px;
-    height: 100vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* ── HEADER ── */
-  #header {
-    height: var(--toolbar-h);
-    background: var(--panel);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    padding: 0 16px;
-    gap: 20px;
-    flex-shrink: 0;
-    position: relative;
-    z-index: 100;
-  }
-
-  #logo {
-    font-family: var(--text-cond);
-    font-weight: 700;
-    font-size: 20px;
-    letter-spacing: 4px;
-    color: var(--accent);
-    text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  #logo span { color: var(--text-dim); font-weight: 300; font-size: 11px; letter-spacing: 2px; }
-
-  .separator { width: 1px; height: 28px; background: var(--border); }
-
-  #toolbar {
-    display: flex;
-    gap: 4px;
-    flex: 1;
-  }
-
-  .tool-btn {
-    background: transparent;
-    border: 1px solid transparent;
-    color: var(--text-dim);
-    font-family: var(--text-cond);
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    padding: 5px 12px;
-    cursor: pointer;
-    border-radius: 2px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.15s;
-  }
-  .tool-btn:hover { color: var(--text); border-color: var(--border); }
-  .tool-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(0,212,255,0.06); }
-  .tool-btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.5; }
-
-  #status-bar {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .status-item {
-    font-family: var(--text-mono);
-    font-size: 10px;
-    color: var(--text-dim);
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .status-item .dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--text-dim);
-  }
-  .status-item.ok .dot { background: #4cff91; box-shadow: 0 0 6px #4cff91; }
-  .status-item.warn .dot { background: var(--warn); }
-
-  /* ── MAIN LAYOUT ── */
-  #main {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-  }
-
-  /* ── LEFT PANEL ── */
-  #panel-left {
-    width: var(--panel-w);
-    background: var(--panel);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-    overflow: hidden;
-  }
-
-  .panel-section {
-    border-bottom: 1px solid var(--border);
-    padding: 14px 16px;
-  }
-  .panel-label {
-    font-family: var(--text-cond);
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 3px;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    margin-bottom: 10px;
-  }
-
-  /* Drop Zone */
-  #drop-zone {
-    border: 1px dashed var(--border);
-    border-radius: 4px;
-    padding: 20px 16px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    position: relative;
-  }
-  #drop-zone:hover, #drop-zone.drag-over {
-    border-color: var(--accent);
-    background: rgba(0,212,255,0.04);
-  }
-  #drop-zone input[type="file"] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%;
-  }
-  #drop-zone .dz-icon { color: var(--accent); margin-bottom: 8px; opacity: 0.7; }
-  #drop-zone .dz-title {
-    font-family: var(--text-cond);
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    color: var(--text);
-    margin-bottom: 4px;
-  }
-  #drop-zone .dz-sub {
-    font-size: 10px;
-    color: var(--text-dim);
-    letter-spacing: 0.5px;
-  }
-
-  /* Model info */
-  #model-info { display: none; }
-  .info-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 4px 0;
-    border-bottom: 1px solid rgba(30,37,48,0.5);
-  }
-  .info-row:last-child { border: none; }
-  .info-key { font-size: 10px; color: var(--text-dim); font-family: var(--text-cond); letter-spacing: 1px; }
-  .info-val { font-family: var(--text-mono); font-size: 11px; color: var(--accent); }
-
-  /* Annotations list */
-  #annotations-list {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 8px;
-    min-height: 0;
-  }
-  #annotations-list::-webkit-scrollbar { width: 3px; }
-  #annotations-list::-webkit-scrollbar-track { background: transparent; }
-  #annotations-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  .annotation-item {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--accent2);
-    border-radius: 2px;
-    padding: 8px 10px;
-    margin-bottom: 6px;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .annotation-item:hover { border-color: var(--accent); background: rgba(0,212,255,0.04); }
-  .annotation-item.selected { border-left-color: var(--accent); }
-  .ann-title {
-    font-family: var(--text-cond);
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    color: var(--text);
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 3px;
-  }
-  .ann-tag {
-    font-size: 9px;
-    padding: 1px 5px;
-    border-radius: 2px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-  .ann-tag.crack    { background: rgba(255,107,43,0.2); color: var(--accent2); }
-  .ann-tag.spalling { background: rgba(255,209,102,0.2); color: var(--warn); }
-  .ann-tag.rebar    { background: rgba(0,212,255,0.2); color: var(--accent); }
-  .ann-tag.other    { background: rgba(200,214,229,0.1); color: var(--text); }
-  .ann-coords { font-family: var(--text-mono); font-size: 9px; color: var(--text-dim); }
-
-  /* ── CESIUM VIEWPORT ── */
-  #cesium-container {
-    flex: 1;
-    position: relative;
-    overflow: hidden;
-  }
-
-  #cesiumViewer {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-  }
-
-  /* HUD overlay */
-  #hud {
-    position: absolute;
-    bottom: 16px;
-    left: 16px;
-    right: 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    pointer-events: none;
-    z-index: 10;
-  }
-
-  #coords-display {
-    background: rgba(10,12,15,0.85);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 8px 12px;
-    font-family: var(--text-mono);
-    font-size: 10px;
-    color: var(--text-dim);
-    line-height: 1.8;
-    backdrop-filter: blur(4px);
-  }
-  #coords-display b { color: var(--accent); }
-
-  #zoom-display {
-    background: rgba(10,12,15,0.85);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 8px 12px;
-    font-family: var(--text-mono);
-    font-size: 10px;
-    color: var(--text-dim);
-    text-align: right;
-    backdrop-filter: blur(4px);
-  }
-
-  /* ── RIGHT PANEL ── */
-  #panel-right {
-    width: 240px;
-    background: var(--panel);
-    border-left: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-  #panel-right::-webkit-scrollbar { width: 3px; }
-  #panel-right::-webkit-scrollbar-track { background: transparent; }
-  #panel-right::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  /* Sliders / Controls */
-  .ctrl-row {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-bottom: 12px;
-  }
-  .ctrl-row label {
-    font-family: var(--text-cond);
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    display: flex;
-    justify-content: space-between;
-  }
-  .ctrl-row label span { color: var(--accent); font-family: var(--text-mono); }
-
-  input[type="range"] {
-    -webkit-appearance: none;
-    width: 100%;
-    height: 2px;
-    background: var(--border);
-    outline: none;
-    border-radius: 2px;
-  }
-  input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 12px; height: 12px;
-    border-radius: 50%;
-    background: var(--accent);
-    cursor: pointer;
-    box-shadow: 0 0 6px var(--accent);
-  }
-
-  .toggle-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-  .toggle-label {
-    font-family: var(--text-cond);
-    font-size: 11px;
-    letter-spacing: 1.5px;
-    color: var(--text);
-    text-transform: uppercase;
-  }
-
-  .toggle {
-    width: 32px; height: 16px;
-    background: var(--border);
-    border-radius: 8px;
-    cursor: pointer;
-    position: relative;
-    transition: background 0.2s;
-  }
-  .toggle.on { background: var(--accent); }
-  .toggle::after {
-    content: '';
-    position: absolute;
-    top: 2px; left: 2px;
-    width: 12px; height: 12px;
-    border-radius: 50%;
-    background: white;
-    transition: left 0.2s;
-  }
-  .toggle.on::after { left: 18px; }
-
-  /* Annotation form */
-  #ann-form { display: none; }
-  #ann-form.visible { display: block; }
-
-  .ann-input {
-    width: 100%;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border);
-    color: var(--text);
-    font-family: var(--text-body);
-    font-size: 12px;
-    padding: 7px 10px;
-    border-radius: 2px;
-    outline: none;
-    margin-bottom: 8px;
-    transition: border-color 0.15s;
-  }
-  .ann-input:focus { border-color: var(--accent); }
-
-  select.ann-input option { background: var(--panel); }
-
-  .btn-primary {
-    width: 100%;
-    background: var(--accent);
-    color: var(--bg);
-    border: none;
-    font-family: var(--text-cond);
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 8px;
-    border-radius: 2px;
-    cursor: pointer;
-    transition: opacity 0.15s;
-  }
-  .btn-primary:hover { opacity: 0.85; }
-  .btn-secondary {
-    width: 100%;
-    background: transparent;
-    color: var(--text-dim);
-    border: 1px solid var(--border);
-    font-family: var(--text-cond);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 7px;
-    border-radius: 2px;
-    cursor: pointer;
-    transition: all 0.15s;
-    margin-top: 6px;
-  }
-  .btn-secondary:hover { color: var(--text); border-color: var(--text-dim); }
-
-  /* Measurement display */
-  #measure-result {
-    display: none;
-    background: rgba(0,212,255,0.08);
-    border: 1px solid rgba(0,212,255,0.3);
-    border-radius: 3px;
-    padding: 10px 12px;
-    margin-top: 8px;
-    text-align: center;
-  }
-  #measure-result .mval {
-    font-family: var(--text-mono);
-    font-size: 22px;
-    color: var(--accent);
-    font-weight: normal;
-  }
-  #measure-result .munit {
-    font-family: var(--text-cond);
-    font-size: 11px;
-    color: var(--text-dim);
-    letter-spacing: 2px;
-    margin-top: 2px;
-  }
-
-  /* Loading overlay */
-  #loading-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(10,12,15,0.92);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 200;
-    display: none;
-  }
-  #loading-overlay.visible { display: flex; }
-  .loader-ring {
-    width: 48px; height: 48px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    margin-bottom: 16px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loader-text {
-    font-family: var(--text-mono);
-    font-size: 11px;
-    color: var(--text-dim);
-    letter-spacing: 2px;
-  }
-
-  /* Demo banner */
-  #demo-banner {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(255,209,102,0.12);
-    border: 1px solid rgba(255,209,102,0.3);
-    color: var(--warn);
-    font-family: var(--text-mono);
-    font-size: 10px;
-    letter-spacing: 2px;
-    padding: 5px 14px;
-    border-radius: 2px;
-    z-index: 10;
-    pointer-events: none;
-  }
-
-  /* Toast */
-  #toast {
-    position: absolute;
-    top: 60px;
-    left: 50%;
-    transform: translateX(-50%) translateY(-10px);
-    background: rgba(0,212,255,0.12);
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    font-family: var(--text-mono);
-    font-size: 11px;
-    letter-spacing: 1px;
-    padding: 6px 16px;
-    border-radius: 2px;
-    z-index: 300;
-    opacity: 0;
-    transition: all 0.3s;
-    pointer-events: none;
-  }
-  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-  .bm-btn {
-    flex: 1;
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-dim);
-    font-family: var(--text-cond);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    padding: 5px 0;
-    border-radius: 2px;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .bm-btn:hover { border-color: var(--accent); color: var(--text); }
-  .bm-btn.bm-active { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,0.08); }
-
-  .ann-del-btn {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-dim);
-    border-radius: 2px;
-    padding: 3px 7px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-family: var(--text-cond);
-    font-size: 10px;
-    letter-spacing: 1px;
-    transition: all 0.15s;
-  }
-  .ann-del-btn:hover { border-color: #ff4444; color: #ff4444; }
-
-  .panel-label {
-    cursor: pointer;
-    user-select: none;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .panel-label .chevron {
-    font-size: 9px;
-    color: var(--text-dim);
-    transition: transform 0.2s;
-    margin-left: 6px;
-  }
-  .panel-label.collapsed .chevron {
-    transform: rotate(-90deg);
-  }
-  .section-body {
-    overflow: hidden;
-    transition: max-height 0.25s ease, opacity 0.2s;
-    max-height: 600px;
-    opacity: 1;
-  }
-  .section-body.collapsed {
-    max-height: 0;
-    opacity: 0;
-  }
-
-  .model-item {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 7px 8px;
-    margin-bottom: 5px;
-    font-family: var(--text-cond);
-    font-size: 11px;
-  }
-  .model-item-name {
-    color: var(--text);
-    letter-spacing: 0.5px;
-    margin-bottom: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .model-item-meta {
-    color: var(--text-dim);
-    font-size: 10px;
-    margin-bottom: 5px;
-  }
-  .model-item-actions {
-    display: flex;
-    gap: 4px;
-  }
-  .model-act-btn {
-    flex: 1;
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-dim);
-    border-radius: 2px;
-    padding: 3px 0;
-    cursor: pointer;
-    font-family: var(--text-cond);
-    font-size: 10px;
-    letter-spacing: 1px;
-    transition: all 0.15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-  }
-  .model-act-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .model-act-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,0.08); }
-  .model-act-btn.del:hover { border-color: #ff4444; color: #ff4444; }
-  .model-act-btn.center-btn:hover { border-color: #ffd166; color: #ffd166; }
-
-  .ann-detail {
-    display: none;
-    margin-top: 6px;
-    padding-top: 6px;
-    border-top: 1px solid var(--border);
-  }
-  .ann-detail.open { display: block; }
-  .ann-detail-row {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    margin-bottom: 6px;
-  }
-  .ann-detail-label {
-    font-family: var(--text-cond);
-    font-size: 9px;
-    letter-spacing: 1.5px;
-    color: var(--text-dim);
-  }
-  .ann-detail input,
-  .ann-detail select,
-  .ann-detail textarea {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    color: var(--text);
-    font-family: var(--text-mono);
-    font-size: 11px;
-    padding: 4px 6px;
-    width: 100%;
-    box-sizing: border-box;
-    resize: none;
-  }
-  .ann-detail input:focus,
-  .ann-detail select:focus,
-  .ann-detail textarea:focus {
-    outline: none;
-    border-color: var(--accent);
-  }
-  .ann-detail .ann-coords-detail {
-    font-family: var(--text-mono);
-    font-size: 10px;
-    color: var(--text-dim);
-    line-height: 1.8;
-  }
-  .ann-save-btn {
-    width: 100%;
-    background: rgba(0,212,255,0.1);
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    font-family: var(--text-cond);
-    font-size: 11px;
-    letter-spacing: 1.5px;
-    padding: 5px;
-    border-radius: 2px;
-    cursor: pointer;
-    margin-top: 4px;
-    transition: all 0.15s;
-  }
-  .ann-save-btn:hover { background: rgba(0,212,255,0.2); }
-
-  .ann-photo-thumb {
-    width: 100%;
-    border-radius: 3px;
-    border: 1px solid var(--border);
-    cursor: pointer;
-    margin-top: 4px;
-    display: block;
-    max-height: 120px;
-    object-fit: cover;
-    transition: opacity 0.15s;
-  }
-  .ann-photo-thumb:hover { opacity: 0.8; }
-  .ann-photo-btn {
-    width: 100%;
-    background: transparent;
-    border: 1px dashed var(--border);
-    color: var(--text-dim);
-    font-family: var(--text-cond);
-    font-size: 10px;
-    letter-spacing: 1px;
-    padding: 6px;
-    border-radius: 2px;
-    cursor: pointer;
-    margin-top: 4px;
-    transition: all 0.15s;
-    text-align: center;
-  }
-  .ann-photo-btn:hover { border-color: var(--accent); color: var(--accent); }
-  #photo-modal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.92);
-    z-index: 9999;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-  }
-  #photo-modal.open { display: flex; }
-  #photo-modal img {
-    max-width: 90vw;
-    max-height: 85vh;
-    border-radius: 4px;
-    box-shadow: 0 0 40px rgba(0,0,0,0.8);
-  }
-  #photo-modal-close {
-    position: absolute;
-    top: 16px; right: 20px;
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.2);
-    color: white;
-    font-size: 20px;
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-  }
-  #photo-modal-caption {
-    color: rgba(255,255,255,0.6);
-    font-family: var(--text-cond);
-    font-size: 11px;
-    letter-spacing: 1px;
-    margin-top: 12px;
-  }
-
-  .sum-comp-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 10px;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    cursor: pointer;
-    margin-bottom: 3px;
-    font-family: var(--text-cond);
-    font-size: 12px;
-    letter-spacing: 1px;
-    color: var(--text);
-    transition: background 0.15s;
-  }
-  .sum-comp-header:hover { background: rgba(255,255,255,0.07); }
-  .sum-comp-body { display: none; margin-bottom: 8px; }
-  .sum-comp-body.open { display: block; }
-  .sum-elem-row {
-    padding: 5px 10px 5px 20px;
-    border-left: 2px solid var(--border);
-    margin-left: 8px;
-    margin-bottom: 2px;
-  }
-  .sum-elem-title {
-    font-family: var(--text-cond);
-    font-size: 10px;
-    letter-spacing: 1px;
-    color: var(--text-dim);
-    margin-bottom: 4px;
-  }
-  .sum-ann-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 6px;
-    background: rgba(255,255,255,0.02);
-    border-radius: 2px;
-    margin-bottom: 2px;
-    font-family: var(--text-mono);
-    font-size: 10px;
-  }
-  .sum-ann-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-  .sum-ann-name { color: var(--text); flex: 1; }
-  .sum-ann-type { color: var(--text-dim); font-size: 9px; }
-  .sum-ann-sev  { font-size: 9px; padding: 1px 5px; border-radius: 2px; color: #fff; flex-shrink: 0; }
-  .sum-ann-geom { color: var(--text-dim); font-size: 9px; flex-shrink: 0; }
-
-  @media print {
-    .no-print { display: none !important; }
-  }
-  .no-print {}
-
-  .view-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 6px;
-    border-radius: 3px;
-    margin-bottom: 2px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid transparent;
-    transition: border-color 0.15s;
-  }
-  .view-item:hover { border-color: var(--border); }
-  .view-item-name {
-    flex: 1;
-    font-family: var(--text-mono);
-    font-size: 11px;
-    color: var(--text);
-    background: transparent;
-    border: none;
-    outline: none;
-    cursor: text;
-    min-width: 0;
-  }
-  .view-item-name:focus {
-    background: rgba(255,255,255,0.05);
-    border-radius: 2px;
-    padding: 1px 3px;
-  }
-  .view-act-btn {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--text-dim);
-    border-radius: 2px;
-    width: 22px; height: 22px;
-    cursor: pointer;
-    font-size: 11px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    transition: all 0.15s;
-  }
-  .view-act-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .view-act-btn.del:hover { border-color: #ff4444; color: #ff4444; }
-  #views-list::-webkit-scrollbar { width: 3px; }
-  #views-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  /* Cesium UI overrides */
-  .cesium-widget-credits { display: none !important; }
-  .cesium-viewer-bottom { display: none !important; }
-
-  /* Empty state */
-  #empty-state {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 5;
-    pointer-events: none;
-  }
-  .es-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.15; }
-  .es-title {
-    font-family: var(--text-cond);
-    font-size: 18px;
-    font-weight: 300;
-    letter-spacing: 4px;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
-  .es-sub { font-size: 11px; color: var(--text-dim); opacity: 0.6; letter-spacing: 1px; }
-
-  /* ── MODAL AYUDA MODO CLARO ─────────────────────────────── */
-  body.light-mode #help-modal > div { background:#fff !important; border-color:#c5d4e8 !important; }
-  body.light-mode #help-modal .help-tabs { background:#f0f4f8 !important; border-bottom-color:#c5d4e8 !important; }
-  body.light-mode #help-modal .help-tab { color:#6b7a92 !important; }
-  body.light-mode #help-modal .help-tab:hover { color:#1a2336 !important; }
-  body.light-mode #help-modal .help-tab-active { color:#0080aa !important; border-bottom-color:#0080aa !important; }
-  body.light-mode #help-modal h3 { color:#0080aa !important; border-bottom-color:rgba(0,128,170,0.2) !important; }
-  body.light-mode #help-modal h4 { color:#0067a3 !important; }
-  body.light-mode #help-modal p, body.light-mode #help-modal li { color:#2a3a52 !important; }
-  body.light-mode #help-modal strong { color:#1a2336 !important; }
-  body.light-mode #help-modal em { color:#6b7a92 !important; }
-  body.light-mode #help-modal code { background:rgba(0,128,170,0.08) !important; border-color:rgba(0,128,170,0.2) !important; color:#0080aa !important; }
-  body.light-mode .help-table th { background:rgba(0,128,170,0.08) !important; color:#0080aa !important; border-color:#c5d4e8 !important; }
-  body.light-mode .help-table td { color:#2a3a52 !important; border-color:#dce5f0 !important; }
-  body.light-mode .help-table tr:nth-child(even) td { background:#f5f8fc !important; }
-  body.light-mode .help-tip { background:rgba(240,165,0,0.08) !important; border-left-color:#f0a500 !important; color:#4a5568 !important; }
-  body.light-mode #help-modal-title { color:#0080aa !important; }
-  body.light-mode #help-modal .help-content { background:#fff; }
-
-  /* ── EVAL TALUDES DRAWER ─────────────────────────────────────────────── */
-  #eval-drawer {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    height: 0;
-    background: var(--panel);
-    border-top: 2px solid #00b894;
-    z-index: 8000;
-    display: flex;
-    flex-direction: column;
-    transition: height 0.3s cubic-bezier(0.4,0,0.2,1);
-    box-shadow: 0 -6px 32px rgba(0,0,0,0.5);
-    overflow: hidden;
-  }
-  #eval-tab {
-    position: fixed;
-    left: 12px; bottom: 0;
-    z-index: 8001;
-    background: #00b894;
-    color: #000;
-    font-family: var(--text-cond);
-    font-size: 10px; letter-spacing: 2px;
-    padding: 5px 12px 4px;
-    border-radius: 6px 6px 0 0;
-    cursor: pointer; border: none;
-    transition: bottom 0.3s cubic-bezier(0.4,0,0.2,1), background 0.15s;
-    white-space: nowrap; user-select: none; font-weight: bold;
-  }
-  #eval-tab:hover { background: #00c9a7; }
-  #eval-drawer-header {
-    display: flex; align-items: center;
-    justify-content: space-between;
-    padding: 5px 14px; border-bottom: 1px solid var(--border);
-    flex-shrink: 0; background: rgba(0,184,148,0.08); min-height: 34px;
-  }
-  #eval-iframe { flex: 1; border: none; width: 100%; background: #fff; display: block; }
-  .eval-ctrl-btn {
-    background: transparent; border: 1px solid var(--border);
-    color: var(--text-dim); border-radius: 3px; padding: 2px 8px;
-    cursor: pointer; font-family: var(--text-cond);
-    font-size: 10px; letter-spacing: 1px; transition: all 0.15s;
-  }
-  .eval-ctrl-btn:hover { border-color: #00b894; color: #00b894; }
 
   /* ── RUEDA ROTACIONAL ────────────────────────────────────────────────── */
   #nav-dial-wrap {
@@ -2106,6 +1111,43 @@
     #summary-print-area h4        { color: #003366; }
     #summary-print-area .sum-acc-hdr { background: #eef2f7 !important; }
   }
+
+  /* ── CHUNKS ─────────────────────────────────────────────────────────── */
+  .chunk-header {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 4px 4px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    margin-top: 6px;
+    user-select: none;
+  }
+  .chunk-header:first-child { margin-top: 0; }
+  .chunk-header:hover { background: rgba(255,255,255,0.03); }
+  .chunk-arrow { font-size: 9px; color: var(--text-dim); transition: transform 0.2s; flex-shrink:0; }
+  .chunk-arrow.collapsed { transform: rotate(-90deg); }
+  .chunk-name {
+    font-family: var(--text-cond); font-size: 10px;
+    letter-spacing: 1.5px; color: var(--accent);
+    flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .chunk-name input.chunk-rename {
+    background: transparent; border: none; border-bottom: 1px solid var(--accent);
+    color: var(--accent); font-family: var(--text-cond); font-size: 10px;
+    letter-spacing: 1.5px; width: 100%; outline: none; padding: 0;
+  }
+  .chunk-count {
+    font-family: var(--text-mono); font-size: 9px;
+    color: var(--text-dim); flex-shrink: 0;
+  }
+  .chunk-del-btn {
+    background: transparent; border: none; color: var(--text-dim);
+    cursor: pointer; font-size: 10px; padding: 0 2px; flex-shrink: 0;
+    opacity: 0; transition: opacity 0.15s;
+  }
+  .chunk-header:hover .chunk-del-btn { opacity: 0.6; }
+  .chunk-del-btn:hover { color: #e17055; opacity: 1 !important; }
+  .chunk-body.collapsed { display: none; }
+
 </style>
 </head>
 <body>
@@ -2262,12 +1304,33 @@
     <div class="panel-section" style="flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;">
       <div class="panel-label" style="flex-shrink:0;display:flex;justify-content:space-between;align-items:center;">
         <span id="lbl-annotations">Anotaciones</span> <span id="ann-count" style="color:var(--accent)">0</span><span id="ann-filter-count" style="color:var(--text-dim);font-size:10px;"></span></span>
-        <button id="btn-ann-visibility" onclick="toggleAllAnnotations()" title="Mostrar/ocultar todas las anotaciones"
-          style="background:transparent;border:none;color:var(--accent);cursor:pointer;padding:2px;display:flex;align-items:center;">
-          <svg id="ann-eye-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-          </svg>
-        </button>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <!-- Importar -->
+          <button onclick="document.getElementById('import-input').click()" title="Importar anotaciones"
+            style="background:transparent;border:1px solid var(--border);color:var(--text-dim);cursor:pointer;padding:3px 5px;border-radius:3px;display:flex;align-items:center;transition:all 0.15s;"
+            onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)'">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+          </button>
+          <!-- Exportar -->
+          <button onclick="exportAnnotations()" title="Exportar anotaciones"
+            style="background:transparent;border:1px solid var(--border);color:var(--text-dim);cursor:pointer;padding:3px 5px;border-radius:3px;display:flex;align-items:center;transition:all 0.15s;"
+            onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)'">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+            </svg>
+          </button>
+          <!-- Ojo -->
+          <button id="btn-ann-visibility" onclick="toggleAllAnnotations()" title="Mostrar/ocultar todas las anotaciones"
+            style="background:transparent;border:none;color:var(--accent);cursor:pointer;padding:2px;display:flex;align-items:center;">
+            <svg id="ann-eye-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
       </div>
       <!-- Barra de filtros -->
       <div id="ann-filters" style="flex-shrink:0;padding:4px 0 6px;border-bottom:1px solid var(--border);margin-bottom:4px;">
@@ -2316,29 +1379,23 @@
       <div id="annotations-list" style="flex:1;overflow-y:auto;min-height:0;"></div>
     </div>
 
-    <div class="panel-section" style="margin-top:auto; border-top: 1px solid var(--border); border-bottom:none; padding-bottom: 32px;">
-      <div style="display:flex;gap:5px;margin-bottom:5px;">
-        <button class="btn-secondary" id="btn-import-ann" style="flex:1;" onclick="document.getElementById('import-input').click()">↑ IMPORTAR</button>
-        <input type="file" id="import-input" accept=".geojson,.json" style="display:none;" onchange="importAnnotations(event)">
-      </div>
-      <div style="position:relative;">
-      <button class="btn-secondary" id="btn-export-ann" onclick="exportAnnotations()" style="width:100%;">↓ EXPORTAR ANOTACIONES</button>
-      <div id="export-menu" style="display:none;position:absolute;bottom:36px;left:0;right:0;
-        background:var(--panel);border:1px solid var(--border);border-radius:3px;z-index:100;overflow:hidden;">
-        <button onclick="exportAsGeoJSON()" style="width:100%;background:transparent;border:none;border-bottom:1px solid var(--border);
-          color:var(--text);font-family:var(--text-cond);font-size:11px;letter-spacing:1px;padding:8px;cursor:pointer;text-align:left;">
-          ⬡ GeoJSON <span style="color:var(--text-dim);font-size:9px;">— QGIS · ArcGIS · Google Earth</span>
-        </button>
-        <button onclick="exportAsCSV()" style="width:100%;background:transparent;border:none;border-bottom:1px solid var(--border);
-          color:var(--text);font-family:var(--text-cond);font-size:11px;letter-spacing:1px;padding:8px;cursor:pointer;text-align:left;">
-          ≡ CSV <span style="color:var(--text-dim);font-size:9px;">— Excel · LibreOffice</span>
-        </button>
-        <button onclick="exportAsJSON()" style="width:100%;background:transparent;border:none;
-          color:var(--text);font-family:var(--text-cond);font-size:11px;letter-spacing:1px;padding:8px;cursor:pointer;text-align:left;">
-          { } JSON <span style="color:var(--text-dim);font-size:9px;">— Formato INSPECTWIN</span>
-        </button>
-      </div>
-    </div>
+    <input type="file" id="import-input" accept=".geojson,.json" style="display:none;" onchange="importAnnotations(event)">
+    <!-- Menú export (activado desde el icono del header) -->
+    <div id="export-menu" style="display:none;position:fixed;bottom:60px;left:210px;width:220px;
+      background:var(--panel);border:1px solid var(--border);border-radius:4px;z-index:2000;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.4);">
+      <div style="font-family:var(--text-cond);font-size:9px;letter-spacing:2px;color:var(--text-dim);padding:6px 10px 4px;">EXPORTAR COMO</div>
+      <button onclick="exportAsGeoJSON()" style="width:100%;background:transparent;border:none;border-top:1px solid var(--border);
+        color:var(--text);font-family:var(--text-cond);font-size:11px;letter-spacing:1px;padding:8px 10px;cursor:pointer;text-align:left;">
+        ⬡ GeoJSON <span style="color:var(--text-dim);font-size:9px;">— QGIS · ArcGIS</span>
+      </button>
+      <button onclick="exportAsCSV()" style="width:100%;background:transparent;border:none;border-top:1px solid var(--border);
+        color:var(--text);font-family:var(--text-cond);font-size:11px;letter-spacing:1px;padding:8px 10px;cursor:pointer;text-align:left;">
+        ≡ CSV <span style="color:var(--text-dim);font-size:9px;">— Excel · LibreOffice</span>
+      </button>
+      <button onclick="exportAsJSON()" style="width:100%;background:transparent;border:none;border-top:1px solid var(--border);
+        color:var(--text);font-family:var(--text-cond);font-size:11px;letter-spacing:1px;padding:8px 10px;cursor:pointer;text-align:left;">
+        {} JSON <span style="color:var(--text-dim);font-size:9px;">— Formato INSPECTWIN</span>
+      </button>
     </div>
   </div>
 
@@ -2715,6 +1772,9 @@ let currentMode = 'navigate';
 let currentTileset = null;
 let currentTilesetBS = null;   // BoundingSphere calculado manualmente al cargar
 let annotations = [];
+var _chunks      = [];   // [{id, name, collapsed}]
+var _chunkSeq    = 0;    // contador P1, P2, P3...
+var _sessionChunkId = null; // chunk para anotaciones manuales de esta sesión
 let measurePoints = [];
 let measureEntities = [];
 let clippingEnabled = false;
@@ -3224,6 +2284,7 @@ function closeSummary() {
 // ── DATOS DEL PUENTE ─────────────────────────────────────────────────────────
 var _bridgeData = null;
 var _reportModule = 'bridges';
+var _reportChunk  = null;  // null = todos los paquetes
 
 
 function showReport() {
@@ -3283,10 +2344,72 @@ function selectReportModule(mod) {
     var estEl = document.getElementById(structs[mod]);
     if (estEl && _bridgeData.estructura) estEl.value = _bridgeData.estructura;
   }
-  document.getElementById('bridge-form-modal').style.display = 'flex';
+  // Si hay paquetes con anotaciones del módulo, preguntar cuál incluir
+  var modAnns = annotations.filter(function(a){ return (a.modulo||'bridges')===mod; });
+  var modChunks = _chunks.filter(function(ch){
+    return modAnns.some(function(a){ return a._chunk===ch.id; });
+  });
+  if (!modChunks.length) {
+    _reportChunk = null;
+    document.getElementById('bridge-form-modal').style.display = 'flex';
+    return;
+  }
+  _selectReportChunk(mod, modChunks, function(chunkId) {
+    _reportChunk = chunkId;
+    document.getElementById('bridge-form-modal').style.display = 'flex';
+  });
 }
 
+/* ── Selector de paquete para el reporte ── */
+function _selectReportChunk(mod, modChunks, callback) {
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.82);z-index:9500;display:flex;align-items:center;justify-content:center;';
 
+  var box = document.createElement('div');
+  box.style.cssText = 'background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:22px 24px;width:380px;max-width:95vw;font-family:var(--text-cond);';
+
+  var title = document.createElement('div');
+  title.style.cssText = 'font-size:11px;letter-spacing:2px;color:var(--accent);margin-bottom:4px;text-transform:uppercase;';
+  title.textContent = _lang==='en' ? 'Report Package' : 'Paquete del Reporte';
+  box.appendChild(title);
+
+  var sub = document.createElement('div');
+  sub.style.cssText = 'font-size:10px;color:var(--text-dim);letter-spacing:1px;margin-bottom:14px;';
+  sub.textContent = _lang==='en' ? 'Which annotations to include?' : '¿Qué anotaciones incluir?';
+  box.appendChild(sub);
+
+  // Botón "Todos los paquetes"
+  var allCnt = annotations.filter(function(a){ return (a.modulo||'bridges')===mod; }).length;
+  var allBtn = document.createElement('button');
+  allBtn.style.cssText = 'width:100%;padding:10px 14px;margin-bottom:6px;background:rgba(0,212,255,0.07);border:1px solid var(--accent);border-radius:4px;color:var(--text);font-family:var(--text-cond);font-size:12px;cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center;transition:opacity .15s;';
+  allBtn.innerHTML = '<span>' + (_lang==='en'?'All packages':'Todos los paquetes') + '</span>'
+    + '<span style="font-family:var(--text-mono);font-size:10px;color:var(--accent);">' + allCnt + ' anot.</span>';
+  allBtn.onclick = function(){ document.body.removeChild(overlay); callback(null); };
+  box.appendChild(allBtn);
+
+  // Botón por paquete
+  modChunks.forEach(function(ch) {
+    var cnt = annotations.filter(function(a){ return a._chunk===ch.id && (a.modulo||'bridges')===mod; }).length;
+    var btn = document.createElement('button');
+    btn.style.cssText = 'width:100%;padding:10px 14px;margin-bottom:6px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--text-cond);font-size:12px;cursor:pointer;text-align:left;display:flex;justify-content:space-between;align-items:center;transition:border-color .15s;';
+    btn.innerHTML = '<span>' + ch.name + '</span>'
+      + '<span style="font-family:var(--text-mono);font-size:10px;color:var(--text-dim);">' + cnt + ' anot.</span>';
+    btn.onmouseover = function(){ this.style.borderColor = 'var(--accent)'; };
+    btn.onmouseout  = function(){ this.style.borderColor = 'var(--border)'; };
+    btn.onclick = (function(id){ return function(){ document.body.removeChild(overlay); callback(id); }; })(ch.id);
+    box.appendChild(btn);
+  });
+
+  // Cancelar
+  var cancelBtn = document.createElement('button');
+  cancelBtn.style.cssText = 'width:100%;padding:8px;margin-top:4px;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--text-dim);font-family:var(--text-cond);font-size:11px;cursor:pointer;letter-spacing:1px;';
+  cancelBtn.textContent = _lang==='en' ? 'Cancel' : 'Cancelar';
+  cancelBtn.onclick = function(){ document.body.removeChild(overlay); };
+  box.appendChild(cancelBtn);
+
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
 
 function showBridgeForm() {
   // Precargar campos si ya hay datos
@@ -3702,7 +2825,10 @@ function closeReport() {
 
 function generateReport() {
   var d = _bridgeData || {};
-  var reportAnns = annotations.filter(function(a){ return (a.modulo||'bridges')===(_reportModule||'bridges'); });
+  var reportAnns = annotations.filter(function(a){
+    return (a.modulo||'bridges') === (_reportModule||'bridges')
+      && (_reportChunk === null || a._chunk === _reportChunk);
+  });
   var SEV_C = ['#636e72','#00b894','#fdcb6e','#e17055','#d63031','#6c5ce7'];
   var SEV_L = [
     t('sev_0').split(' — ')[1]||'Sin daño',
@@ -3745,6 +2871,10 @@ function generateReport() {
       +'<div style="text-align:right;font-size:10px;color:#666;">'
         +'<div>'+t('report_date')+' '+fechaReporte+'</div>'
         +'<div>'+t('report_annotations')+' '+total+'</div>'
+        +(_reportChunk ? (function(){
+            var ch = _chunks.find(function(c){ return c.id===_reportChunk; });
+            return ch ? '<div style="margin-top:3px;color:#e17055;font-size:9px;">&#128196; '+(_lang==='en'?'Package: ':'Paquete: ')+ch.name+'</div>' : '';
+          })() : '')
       +'</div>'
     +'</div></div>';
 
@@ -6596,6 +5726,7 @@ function finishPolyAnn() {
     componente: normalizeToES(compInputP ? compInputP.value : null, elemInputP ? elemInputP.value : null).componente,
     elemento:   normalizeToES(compInputP ? compInputP.value : null, elemInputP ? elemInputP.value : null).elemento,
     geom: 'polygon', visible: true,
+    _chunk: _getSessionChunk(),
     entities: ents,
     vertices: vertices,
     area: area,
@@ -6718,6 +5849,7 @@ function finishLineAnn() {
     type: type,
     geom: 'line',
     modulo: _activeModule,
+    _chunk: _getSessionChunk(),
     notes: notes,
     severidad:  sevInputL  && sevInputL.value  !== '' ? parseInt(sevInputL.value) : null,
     componente: normalizeToES(compInputL ? compInputL.value : null, elemInputL ? elemInputL.value : null).componente,
@@ -6919,6 +6051,7 @@ function addAnnotationFromForm() {
     elemento:    normalizeToES(compInput ? compInput.value : null, elemInput ? elemInput.value : null).elemento,
     geom: 'point',
     modulo: _activeModule,
+    _chunk: _getSessionChunk(),
     visible: true,
     entities: [],
     vertices: coords ? [{
@@ -6964,83 +6097,165 @@ function addAnnotationFromForm() {
   showToast('Anotación añadida: ' + title);
 }
 
+
 // Índice de anotación expandida
 var _expandedAnnId = null;
+
+function _getSessionChunk() {
+  if (_sessionChunkId && _chunks.find(function(ch){ return ch.id===_sessionChunkId; }))
+    return _sessionChunkId;
+  // Crear chunk de sesión con fecha de hoy
+  var today = new Date();
+  var dd = String(today.getDate()).padStart(2,'0');
+  var mm = String(today.getMonth()+1).padStart(2,'0');
+  var yyyy = today.getFullYear();
+  var name = (_lang==='en'?'New annotation ':'Nueva anotación ') + dd+'/'+mm+'/'+yyyy;
+  _sessionChunkId = 'session-' + today.getTime();
+  _chunks.push({ id: _sessionChunkId, name: name, collapsed: false });
+  return _sessionChunkId;
+}
+
+function _getOrCreateChunk(chunkId, chunkName) {
+  var ch = _chunks.find(function(c){ return c.id===chunkId; });
+  if (!ch) {
+    ch = { id: chunkId, name: chunkName || chunkId, collapsed: false };
+    _chunks.push(ch);
+  }
+  return ch;
+}
+
+function toggleChunk(chunkId) {
+  if (chunkId === '__nochunk__') {
+    // Toggle visual sin chunk real
+    var body = document.querySelector('[data-chunk-body="__nochunk__"]');
+    var arrow = document.querySelector('[data-chunk-id="__nochunk__"] .chunk-arrow');
+    if (body) {
+      var isCollapsed = body.classList.contains('collapsed');
+      body.classList.toggle('collapsed');
+      if (arrow) arrow.classList.toggle('collapsed');
+    }
+    return;
+  }
+  var ch = _chunks.find(function(c){ return c.id===chunkId; });
+  if (ch) ch.collapsed = !ch.collapsed;
+  renderAnnotationList();
+}
+
+function deleteChunk(chunkId) {
+  var ch = _chunks.find(function(c){ return c.id===chunkId; });
+  if (!ch) return;
+  var cnt = annotations.filter(function(a){ return a._chunk===chunkId; }).length;
+  var msg = (_lang==='en'?'Delete package "':'Eliminar paquete "') + ch.name + '"'
+    + (_lang==='en'?' and its ':' y sus ') + cnt + (_lang==='en'?' annotations?':' anotaciones?');
+  if (!confirm(msg)) return;
+  // Eliminar entidades Cesium
+  annotations.filter(function(a){ return a._chunk===chunkId; }).forEach(function(a){
+    (a.entities||[]).forEach(function(e){ try{ viewer.entities.remove(e); }catch(ex){} });
+  });
+  annotations = annotations.filter(function(a){ return a._chunk!==chunkId; });
+  _chunks = _chunks.filter(function(c){ return c.id!==chunkId; });
+  renderAnnotationList();
+  showToast(_lang==='en'?'Package deleted':'Paquete eliminado');
+}
+
+function startRenameChunk(chunkId, btn) {
+  var nameEl = btn.parentElement.querySelector('.chunk-name');
+  if (!nameEl) return;
+  var ch = _chunks.find(function(c){ return c.id===chunkId; });
+  if (!ch) return;
+  var inp = document.createElement('input');
+  inp.className = 'chunk-rename';
+  inp.value = ch.name;
+  nameEl.innerHTML = '';
+  nameEl.appendChild(inp);
+  inp.focus(); inp.select();
+  inp.addEventListener('blur', function(){ ch.name = inp.value || ch.name; renderAnnotationList(); });
+  inp.addEventListener('keydown', function(e){
+    if(e.key==='Enter'){ ch.name=inp.value||ch.name; renderAnnotationList(); }
+    if(e.key==='Escape'){ renderAnnotationList(); } // Cancelar sin guardar
+  });
+}
+
 
 function renderAnnotationList() {
   const list = document.getElementById('annotations-list');
   document.getElementById('ann-count').textContent = annotations.length;
   const TRASH = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>';
-  // Combinar tipos de todos los módulos para poder mostrar anotaciones de cualquier módulo
-  const TYPES = (function() {
-    var all = [];
-    var seen = {};
-    Object.keys(MODULES).forEach(function(m) {
-      var arr = _lang === 'en' ? MODULES[m].types_en : MODULES[m].types_es;
-      arr.forEach(function(tp) {
-        if (!seen[tp.v]) { seen[tp.v] = true; all.push(tp); }
-      });
-    });
-    return all;
-  })();
-
+  const SEV_COLORS = ['#636e72','#00b894','#fdcb6e','#e17055','#d63031','#6c5ce7'];
   var visibleAnns = getFilteredAnnotations();
-  list.innerHTML = visibleAnns.map(function(a) {
-    const i      = annotations.indexOf(a);
-    const tag = getTypeLabel(a.type).toUpperCase().substring(0,8);
-    const icon   = a.geom==='line' ? '&#9135; ' : a.geom==='polygon' ? '&#11042; ' : '&#9679; ';
-    const isOpen = _expandedAnnId === a.id;
 
-    const SEV_LABELS = [t('sev_0').split(' — ')[1]||'Sin daño', t('sev_1').split(' — ')[1]||'Muy leve', t('sev_2').split(' — ')[1]||'Leve', t('sev_3').split(' — ')[1]||'Moderado', t('sev_4').split(' — ')[1]||'Severo', t('sev_5').split(' — ')[1]||'Muy severo'];
-    const SEV_COLORS = ['#636e72','#00b894','#fdcb6e','#e17055','#d63031','#6c5ce7'];
-    const sevBadge = (a.severidad !== null && a.severidad !== undefined)
-      ? '<span style="background:'+SEV_COLORS[a.severidad]+';color:#fff;font-size:9px;padding:1px 5px;border-radius:2px;margin-left:4px;font-family:var(--text-cond);letter-spacing:0.5px;">'+a.severidad+' — '+SEV_LABELS[a.severidad]+'</span>'
-      : '';
-    var aFmtList = a.area ? formatArea(a.area) : null;
-    const lineInfo = a.geom==='line' && a.length !== undefined
-      ? '<div class="ann-coords">L: '+(a.length>=1?a.length.toFixed(2)+'m':(a.length*100).toFixed(1)+'cm')+' &middot; '+a.vertexCount+' v'+sevBadge+'</div>'
-      : a.geom==='polygon' && aFmtList
-        ? '<div class="ann-coords">A: '+aFmtList.val+' '+aFmtList.unit+' &middot; '+a.vertexCount+' v'+sevBadge+'</div>'
-        : '<div class="ann-coords" style="margin-top:2px;">'+sevBadge+'</div>';
-    const coordInfo = a.coords
-      ? '<div class="ann-coords">'+a.coords.lat+' / '+a.coords.lon+'</div>' : '';
+  // Asignar anotaciones sin chunk al chunk de sesión (para que aparezcan con controles)
+  visibleAnns.forEach(function(a) {
+    if (!a._chunk) a._chunk = _getSessionChunk();
+  });
 
-    // Tipos del módulo de esta anotación específica
-    var annMod = a.modulo || 'bridges';
-    var annModTypes = _lang === 'en' ? MODULES[annMod].types_en : MODULES[annMod].types_es;
-    typeOpts = annModTypes.map(function(tp){
-      return '<option value="'+tp.v+'"'+(a.type===tp.v?' selected':'')+'>'+tp.l+'</option>';
-    }).join('');
-
-    var coordDetail = '';
-    if (a.vertices && a.vertices.length > 0) {
-      var v0 = a.vertices[0];
-      coordDetail = 'LAT: '+parseFloat(v0.lat).toFixed(8)+'<br>LON: '+parseFloat(v0.lon).toFixed(8)+'<br>ALT: '+parseFloat(v0.alt||0).toFixed(3)+' m'
-        +(a.vertices.length>1?'<br><span style="color:var(--accent)">'+a.vertices.length+' '+(_lang==='en'?'vertices':'vértices')+'</span>':'');
-    } else if (a.coords) {
-      coordDetail = 'LAT: '+a.coords.lat+'<br>LON: '+a.coords.lon+'<br>ALT: '+a.coords.alt+' m';
+  // Separar por chunks
+  var chunked   = {};  // chunkId -> [ann]
+  var noChunk   = [];  // ya no debería usarse, pero por compatibilidad
+  visibleAnns.forEach(function(a) {
+    if (a._chunk) {
+      if (!chunked[a._chunk]) chunked[a._chunk] = [];
+      chunked[a._chunk].push(a);
+    } else {
+      noChunk.push(a);
     }
+  });
 
-    var safeTitle = (a.title||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-    var safeNotes = (a.notes||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  var html = '';
+  var hasContent = false;
 
-    var opacity = a.visible===false ? 'opacity:0.4;' : '';
+  function annCard(a) {
+    hasContent = true;
+    var i = annotations.indexOf(a);
+    var tag = getTypeLabel(a.type).toUpperCase().substring(0,8);
+    var icon = a.geom==='line'?'&#9135; ':a.geom==='polygon'?'&#11042; ':'&#9679; ';
+    var isOpen = _expandedAnnId === a.id;
+    var SEV_LABELS = [t('sev_0').split(' — ')[1]||'Sin daño',t('sev_1').split(' — ')[1]||'Muy leve',t('sev_2').split(' — ')[1]||'Leve',t('sev_3').split(' — ')[1]||'Moderado',t('sev_4').split(' — ')[1]||'Severo',t('sev_5').split(' — ')[1]||'Muy severo'];
+    var sevBadge = (a.severidad!==null&&a.severidad!==undefined)?'<span style="background:'+SEV_COLORS[a.severidad]+';color:#fff;font-size:9px;padding:1px 5px;border-radius:2px;margin-left:4px;font-family:var(--text-cond);letter-spacing:0.5px;">'+a.severidad+' — '+SEV_LABELS[a.severidad]+'</span>':'';
+    var aFmtList = a.area?formatArea(a.area):null;
+    var lineInfo = a.geom==='line'&&a.length!==undefined?'<div class="ann-coords">L: '+(a.length>=1?a.length.toFixed(2)+'m':(a.length*100).toFixed(1)+'cm')+' &middot; '+a.vertexCount+' v'+sevBadge+'</div>':a.geom==='polygon'&&aFmtList?'<div class="ann-coords">A: '+aFmtList.val+' '+aFmtList.unit+' &middot; '+a.vertexCount+' v'+sevBadge+'</div>':'<div class="ann-coords" style="margin-top:2px;">'+sevBadge+'</div>';
+    var annMod = a.modulo||'bridges';
+    var annModTypes = _lang==='en'?MODULES[annMod].types_en:MODULES[annMod].types_es;
+    var typeOpts = annModTypes.map(function(tp){ return '<option value="'+tp.v+'"'+(a.type===tp.v?' selected':'')+'>'+tp.l+'</option>'; }).join('');
+    var coordDetail = '';
+    if (a.vertices&&a.vertices.length>0) {
+      var v0=a.vertices[0];
+      coordDetail='LAT: '+parseFloat(v0.lat).toFixed(8)+'<br>LON: '+parseFloat(v0.lon).toFixed(8)+'<br>ALT: '+parseFloat(v0.alt||0).toFixed(3)+' m'+(a.vertices.length>1?'<br><span style="color:var(--accent)">'+a.vertices.length+' '+(_lang==='en'?'vertices':'vértices')+'</span>':'');
+    } else if (a.coords) {
+      coordDetail='LAT: '+a.coords.lat+'<br>LON: '+a.coords.lon+'<br>ALT: '+a.coords.alt+' m';
+    }
+    var safeTitle=(a.title||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+    var safeNotes=(a.notes||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+    var opacity=a.visible===false?'opacity:0.4;':'';
     return '<div class="annotation-item" style="'+opacity+'">'
       +'<div onclick="toggleAnnDetail('+a.id+')" style="cursor:pointer;">'
-        +'<div class="ann-title" style="display:flex;align-items:center;gap:4px;">'          +'<span style="flex:1;">'+icon          +(a.codigo?'<span style="font-family:var(--text-mono);font-size:9px;color:var(--accent);margin-right:4px;letter-spacing:0.5px;">'+a.codigo+'</span>':'')          +a.title          +'<span class="ann-tag '+a.type+'">'+tag+'</span></span>'          +'<button onclick="event.stopPropagation();flyToAnnotation('+i+')" title="Ir a anotación"'          +' style="background:transparent;border:none;color:var(--accent);cursor:pointer;padding:2px 3px;flex-shrink:0;opacity:0.7;"'          +' onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7">'          +'<svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>'          +'</button>'          +'<span style="color:var(--text-dim);font-size:10px;">'+(isOpen?'▲':'▼')+'</span>'        +'</div>'
-        +lineInfo+coordInfo
+        +'<div class="ann-title" style="display:flex;align-items:center;gap:4px;">'
+          +'<span style="flex:1;">'+icon
+          +(a.codigo?'<span style="font-family:var(--text-mono);font-size:9px;color:var(--accent);margin-right:4px;letter-spacing:0.5px;">'+a.codigo+'</span>':'')
+          +a.title+'<span class="ann-tag '+a.type+'">'+tag+'</span></span>'
+          +'<button onclick="event.stopPropagation();flyToAnnotation('+i+')" title="Ir a anotación" style="background:transparent;border:none;color:var(--accent);cursor:pointer;padding:2px 3px;flex-shrink:0;opacity:0.7;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7">'
+          +'<svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>'
+          +'</button>'
+          +'<span style="color:var(--text-dim);font-size:10px;">'+(isOpen?'▲':'▼')+'</span>'
+        +'</div>'
+        +lineInfo
       +'</div>'
       +'<div class="ann-detail'+(isOpen?' open':'')+'" onclick="event.stopPropagation()">'
         +'<div class="ann-detail-row"><div class="ann-detail-label">'+t('edit_title')+'</div>'
           +'<input type="text" id="edit-title-'+i+'" value="'+safeTitle+'"></div>'
-        +'<div class="ann-detail-row"><div class="ann-detail-label">'+(_lang==='en'?'MODULE':'MÓDULO')+'</div>'+'<div style="display:flex;gap:3px;">'+'<button class="edit-mod-btn" data-idx="'+i+'" data-mod="bridges" style="flex:1;font-family:var(--text-cond);font-size:9px;letter-spacing:1px;padding:2px 1px;border-radius:2px;cursor:pointer;background:'+((a.modulo||'bridges')==='bridges'?'var(--accent)':'transparent')+';color:'+((a.modulo||'bridges')==='bridges'?'#000':'var(--accent)')+';border:1px solid var(--accent);">'+(_lang==='en'?'BRIDGES':'PUENTES')+'</button>'+'<button class="edit-mod-btn" data-idx="'+i+'" data-mod="slopes" style="flex:1;font-family:var(--text-cond);font-size:9px;letter-spacing:1px;padding:2px 1px;border-radius:2px;cursor:pointer;background:'+((a.modulo||'bridges')==='slopes'?'var(--accent)':'transparent')+';color:'+((a.modulo||'bridges')==='slopes'?'#000':'var(--accent)')+';border:1px solid var(--accent);">'+(_lang==='en'?'SLOPES':'TALUDES')+'</button>'+'<button class="edit-mod-btn" data-idx="'+i+'" data-mod="roads" style="flex:1;font-family:var(--text-cond);font-size:9px;letter-spacing:1px;padding:2px 1px;border-radius:2px;cursor:pointer;background:'+((a.modulo||'bridges')==='roads'?'var(--accent)':'transparent')+';color:'+((a.modulo||'bridges')==='roads'?'#000':'var(--accent)')+';border:1px solid var(--accent);">'+(_lang==='en'?'ROADS':'CAMINOS')+'</button>'+'</div></div>'
+        +'<div class="ann-detail-row"><div class="ann-detail-label">'+(_lang==='en'?'MODULE':'MÓDULO')+'</div>'
+          +'<div style="display:flex;gap:3px;">'
+          +'<button class="edit-mod-btn" data-idx="'+i+'" data-mod="bridges" style="flex:1;font-family:var(--text-cond);font-size:9px;letter-spacing:1px;padding:2px 1px;border-radius:2px;cursor:pointer;background:'+((a.modulo||'bridges')==='bridges'?'var(--accent)':'transparent')+';color:'+((a.modulo||'bridges')==='bridges'?'#000':'var(--accent)')+';border:1px solid var(--accent);">'+(_lang==='en'?'BRIDGES':'PUENTES')+'</button>'
+          +'<button class="edit-mod-btn" data-idx="'+i+'" data-mod="slopes" style="flex:1;font-family:var(--text-cond);font-size:9px;letter-spacing:1px;padding:2px 1px;border-radius:2px;cursor:pointer;background:'+((a.modulo||'bridges')==='slopes'?'var(--accent)':'transparent')+';color:'+((a.modulo||'bridges')==='slopes'?'#000':'var(--accent)')+';border:1px solid var(--accent);">'+(_lang==='en'?'SLOPES':'TALUDES')+'</button>'
+          +'<button class="edit-mod-btn" data-idx="'+i+'" data-mod="roads" style="flex:1;font-family:var(--text-cond);font-size:9px;letter-spacing:1px;padding:2px 1px;border-radius:2px;cursor:pointer;background:'+((a.modulo||'bridges')==='roads'?'var(--accent)':'transparent')+';color:'+((a.modulo||'bridges')==='roads'?'#000':'var(--accent)')+';border:1px solid var(--accent);">'+(_lang==='en'?'ROADS':'CAMINOS')+'</button>'
+          +'</div></div>'
         +'<div class="ann-detail-row"><div class="ann-detail-label">'+t('edit_type')+'</div>'
           +'<select id="edit-type-'+i+'">'+typeOpts+'</select></div>'
         +'<div class="ann-detail-row"><div class="ann-detail-label">'+t('edit_notes')+'</div>'
           +'<textarea id="edit-notes-'+i+'" rows="3">'+safeNotes+'</textarea></div>'
         +'<div class="ann-detail-row"><div class="ann-detail-label">'+t('edit_sev')+'</div>'
           +'<select id="edit-sev-'+i+'" style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:2px;color:var(--text);font-family:var(--text-mono);font-size:11px;padding:4px 6px;width:100%;box-sizing:border-box;">'
-          +'<option value="">'+((!a.severidad&&a.severidad!==0)?'selected':'')+'>'+t('sev_none')+'</option>'
+          +'<option value=""'+((!a.severidad&&a.severidad!==0)?' selected':'')+'>'+t('sev_none')+'</option>'
           +'<option value="0"'+(a.severidad===0?' selected':'')+'>'+t('sev_0')+'</option>'
           +'<option value="1"'+(a.severidad===1?' selected':'')+'>'+t('sev_1')+'</option>'
           +'<option value="2"'+(a.severidad===2?' selected':'')+'>'+t('sev_2')+'</option>'
@@ -7051,12 +6266,12 @@ function renderAnnotationList() {
         +'<div class="ann-detail-row"><div class="ann-detail-label">'+t('edit_comp')+'</div>'
           +'<select id="edit-comp-'+i+'" onchange="onCompChange(this.id,&quot;edit-elem-'+i+'&quot;)" style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:2px;color:var(--text);font-family:var(--text-mono);font-size:11px;padding:4px 6px;width:100%;box-sizing:border-box;">'
           +'<option value="">'+(_lang==='en'?'— No component —':'— Sin componente —')+'</option>'
-          +(function(){ var am=a.modulo||'bridges'; var m=MODULES[am]||MODULES.bridges; var csES=Object.keys(m.components_es); var csEN=Object.keys(m.components_en); return csES.map(function(k,i){ var disp=_lang==='en'?(csEN[i]||k):k; return '<option value="'+k+'"'+(a.componente===k?' selected':'')+'>'+disp+'</option>'; }).join(''); })()
+          +(function(){ var am=a.modulo||'bridges'; var m=MODULES[am]||MODULES.bridges; var csES=Object.keys(m.components_es); var csEN=Object.keys(m.components_en); return csES.map(function(k,ix){ var disp=_lang==='en'?(csEN[ix]||k):k; return '<option value="'+k+'"'+(a.componente===k?' selected':'')+'>'+disp+'</option>'; }).join(''); })()
           +'</select></div>'
         +'<div class="ann-detail-row"><div class="ann-detail-label">'+t('edit_elem')+'</div>'
           +'<select id="edit-elem-'+i+'" style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:2px;color:var(--text);font-family:var(--text-mono);font-size:11px;padding:4px 6px;width:100%;box-sizing:border-box;">'
           +'<option value="">'+(_lang==='en'?'— No element —':'— Sin elemento —')+'</option>'
-          +(a.componente ? (function(){ var am=a.modulo||'bridges'; var m=MODULES[am]||MODULES.bridges; var elemsES=m.components_es[a.componente]||[]; var ci=Object.keys(m.components_es).indexOf(a.componente); var ckEN=Object.keys(m.components_en)[ci]||a.componente; var elemsEN=m.components_en[ckEN]||elemsES; return elemsES.map(function(e,i){ var disp=_lang==='en'?(elemsEN[i]||e):e; return '<option value="'+e+'"'+(a.elemento===e?' selected':'')+'>'+disp+'</option>'; }).join(''); })() : '')
+          +(a.componente?(function(){ var am=a.modulo||'bridges'; var m=MODULES[am]||MODULES.bridges; var elemsES=m.components_es[a.componente]||[]; var ci=Object.keys(m.components_es).indexOf(a.componente); var ckEN=Object.keys(m.components_en)[ci]||a.componente; var elemsEN=m.components_en[ckEN]||elemsES; return elemsES.map(function(e,ix){ var disp=_lang==='en'?(elemsEN[ix]||e):e; return '<option value="'+e+'"'+(a.elemento===e?' selected':'')+'>'+disp+'</option>'; }).join(''); })():'')
           +'</select></div>'
         +'<div class="ann-detail-row"><div class="ann-detail-label">'+t('edit_code')+'</div>'
           +'<div style="font-family:var(--text-mono);font-size:13px;font-weight:bold;color:var(--accent);letter-spacing:2px;">'+(a.codigo||'—')+'</div></div>'
@@ -7066,24 +6281,98 @@ function renderAnnotationList() {
         +'<div class="ann-detail-row" style="margin-top:6px;">'
           +'<div class="ann-detail-label">'+t('edit_photo')+'</div>'
           +(a.foto
-            ? '<img class="ann-photo-thumb" src="'+a.foto+'" onclick="openPhotoModal('+i+')" title="Ver foto completa">'
+            ?'<img class="ann-photo-thumb" src="'+a.foto+'" onclick="openPhotoModal('+i+')" title="Ver foto completa">'
               +'<button class="ann-photo-btn" style="border-color:#ff4444;color:#ff4444;" onclick="removePhoto('+i+')">&#10005; '+t('btn_remove_photo').replace('✕ ','')+'</button>'
-            : '<button class="ann-photo-btn" onclick="triggerPhotoInput('+i+')">&#128247; '+t('btn_attach_photo').replace('📷 ','')+'</button>'
+            :'<button class="ann-photo-btn" onclick="triggerPhotoInput('+i+')">&#128247; '+t('btn_attach_photo').replace('📷 ','')+'</button>'
               +'<input type="file" id="photo-input-'+i+'" accept="image/*" style="display:none;" onchange="attachPhoto('+i+',this)">'
           )
         +'</div>'
         +'<div style="display:flex;justify-content:flex-end;gap:5px;margin-top:5px;">'
-          +'<button class="ann-del-btn" onclick="toggleAnnVisibility('+i+')" title="'+(a.visible===false?t('btn_show'):t('btn_hide'))+' ..." style="border-color:'+(a.visible===false?'#ffd166':'var(--border)')+';color:'+(a.visible===false?'#ffd166':'var(--text-dim')+');">'
+          +'<button class="ann-del-btn" onclick="toggleAnnVisibility('+i+')" style="border-color:'+(a.visible===false?'#ffd166':'var(--border)')+';color:'+(a.visible===false?'#ffd166':'var(--text-dim')+');">'
           +(a.visible===false
-            ? '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19M1 1l22 22"/></svg> '+t('btn_show')
-            : '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> '+t('btn_hide')
+            ?'<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19M1 1l22 22"/></svg> '+t('btn_show')
+            :'<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> '+t('btn_hide')
           )+'</button>'
           +'<button class="ann-del-btn" onclick="deleteAnnotation('+i+')" title="'+t('btn_delete')+'">'+TRASH+' '+t('btn_delete')+'</button>'
         +'</div>'
       +'</div>'
     +'</div>';
-  }).join('') || '<div style="padding:16px;text-align:center;font-family:var(--text-cond);font-size:10px;color:var(--text-dim);letter-spacing:1px;">'+t('no_results')+'<br><span style=\"font-size:9px;margin-top:4px;display:block;\">'+t('no_results_sub')+'</span></div>';
+  }
+
+  // ── Renderizar chunks ───────────────────────────────────────────────────────
+  // Chunks con anotaciones visibles
+  var chunkIds = [];
+  _chunks.forEach(function(ch) { if (chunked[ch.id]) chunkIds.push(ch.id); });
+  // Chunks que aparecen en anotaciones pero no en _chunks (por si acaso)
+  Object.keys(chunked).forEach(function(id) {
+    if (!_chunks.find(function(c){ return c.id===id; })) {
+      _chunks.push({ id:id, name:id, collapsed:false });
+      chunkIds.push(id);
+    }
+  });
+
+  chunkIds.forEach(function(chunkId) {
+    var ch  = _chunks.find(function(c){ return c.id===chunkId; });
+    var anns = chunked[chunkId] || [];
+    var cnt  = annotations.filter(function(a){ return a._chunk===chunkId; }).length;
+    var arrowCls = ch.collapsed ? 'chunk-arrow collapsed' : 'chunk-arrow';
+    var bodyCls  = ch.collapsed ? 'chunk-body collapsed' : 'chunk-body';
+    html += '<div class="chunk-header" data-chunk-id="'+chunkId+'">'
+      +'<span class="'+arrowCls+'">&#9660;</span>'
+      +'<span class="chunk-name">'+ch.name+'</span>'
+      +'<span class="chunk-count">'+cnt+'</span>'
+      +'<button class="chunk-del-btn" data-action="rename" data-chunk-id="'+chunkId+'" title="Renombrar">&#9998;</button>'
+      +'<button class="chunk-del-btn" data-action="delete" data-chunk-id="'+chunkId+'" title="Eliminar" style="color:#e17055;">&#10005;</button>'
+      +'</div>'
+      +'<div class="'+bodyCls+'" data-chunk-body="'+chunkId+'">';
+    anns.forEach(function(a){ html += annCard(a); });
+    html += '</div>';
+  }); // fin chunkIds.forEach
+
+  // Anotaciones sin chunk
+  if (noChunk.length) {
+    if (chunkIds.length) {
+      html += '<div class="chunk-header" data-chunk-id="__nochunk__" style="opacity:0.7;">'
+        +'<span class="chunk-arrow">&#9660;</span>'
+        +'<span class="chunk-name">'+(_lang==='en'?'No package':'Sin paquete')+'</span>'
+        +'<span class="chunk-count">'+noChunk.length+'</span>'
+        +'</div>'
+        +'<div class="chunk-body" data-chunk-body="__nochunk__">';
+    }
+    noChunk.forEach(function(a){ html += annCard(a); });
+    if (chunkIds.length) html += '</div>'; // cierre chunk-body nochunk
+  }
+
+  list.innerHTML = html || '<div style="padding:16px;text-align:center;font-family:var(--text-cond);font-size:10px;color:var(--text-dim);letter-spacing:1px;">'+t('no_results')+'<br><span style="font-size:9px;margin-top:4px;display:block;">'+t('no_results_sub')+'</span></div>';
+
+  // Registrar delegation para chunks (solo una vez)
+  if (!list._chunkDelegated) {
+    list._chunkDelegated = true;
+    list.addEventListener('click', function(e) {
+      // Botones de acción (rename/delete) — tienen data-action
+      var btn = e.target;
+      if (btn.dataset && btn.dataset.action) {
+        e.stopPropagation();
+        var cid = btn.getAttribute('data-chunk-id');
+        if (btn.dataset.action === 'rename') startRenameChunk(cid, btn);
+        if (btn.dataset.action === 'delete') deleteChunk(cid);
+        return;
+      }
+      // Click en el encabezado del chunk — buscar el div.chunk-header
+      var el = e.target;
+      while (el && el !== list) {
+        if (el.classList && el.classList.contains('chunk-header')) {
+          var cid2 = el.getAttribute('data-chunk-id');
+          if (cid2) toggleChunk(cid2);
+          return;
+        }
+        el = el.parentNode;
+      }
+    });
+  }
 }
+
+
 
 // ── FOTOS EN ANOTACIONES ────────────────────────────────────────────────────
 function triggerPhotoInput(idx) {
@@ -7503,6 +6792,21 @@ function importAnnotations(event) {
     try {
       var data = JSON.parse(e.target.result);
       var count = 0;
+      // Crear chunk para este paquete — ID único basado en timestamp
+      _chunkSeq++;
+      var chunkId   = 'P' + Date.now() + '_' + _chunkSeq;
+      var chunkName = file.name.replace(/\.json$/i,'').replace(/\.geojson$/i,'');
+      // Verificar si ya existe un chunk con ese nombre
+      var existing = _chunks.find(function(c){ return c.name===chunkName; });
+      if (existing) {
+        if (!confirm((_lang==='en'?'Package "':'El paquete "')+chunkName+(_lang==='en'?'" already exists. Create new?':'" ya existe. ¿Crear uno nuevo?'))) {
+          chunkId = existing.id; // reusar
+        } else {
+          _chunks.push({ id: chunkId, name: chunkName, collapsed: false });
+        }
+      } else {
+        _chunks.push({ id: chunkId, name: chunkName, collapsed: false });
+      }
 
       // Detectar formato: GeoJSON o JSON de INSPECTWIN
       if (data.type === 'FeatureCollection') {
@@ -7524,18 +6828,21 @@ function importAnnotations(event) {
           if (feat.geometry.type === 'Point') {
             var coords = feat.geometry.coordinates; // [lon, lat, alt]
             _importPoint(title, type, notes, coords[1], coords[0], coords[2] || 0);
+            annotations[annotations.length-1]._chunk = chunkId;
             count++;
           } else if (feat.geometry.type === 'LineString') {
             var verts = feat.geometry.coordinates.map(function(co) {
               return { lat: co[1], lon: co[0], alt: co[2] || 0 };
             });
             _importLine(title, type, notes, verts, p.longitud_m || null);
+            annotations[annotations.length-1]._chunk = chunkId;
             count++;
           } else if (feat.geometry.type === 'Polygon') {
             var vertsP = feat.geometry.coordinates[0].map(function(co) {
               return { lat: co[1], lon: co[0], alt: co[2] || 0 };
             });
             _importPolygon(title, type, notes, vertsP);
+            annotations[annotations.length-1]._chunk = chunkId;
             count++;
           }
         });
@@ -7564,7 +6871,8 @@ function importAnnotations(event) {
               last.elemento   = elem;
               last.codigo     = codigo;
               if (camView) last.camView = camView;
-              last.modulo = modulo;
+              last.modulo  = modulo;
+              last._chunk  = chunkId;
               if (a.foto) { last.foto = a.foto; last.fotoNombre = a.foto_nombre || ''; }
               count++;
             }
@@ -7577,7 +6885,8 @@ function importAnnotations(event) {
               last.elemento   = elem;
               last.codigo     = codigo;
               if (camView) last.camView = camView;
-              last.modulo = modulo;
+              last.modulo  = modulo;
+              last._chunk  = chunkId;
               if (a.foto) { last.foto = a.foto; last.fotoNombre = a.foto_nombre || ''; }
               count++;
             }
@@ -7590,7 +6899,8 @@ function importAnnotations(event) {
               last.elemento   = elem;
               last.codigo     = codigo;
               if (camView) last.camView = camView;
-              last.modulo = modulo;
+              last.modulo  = modulo;
+              last._chunk  = chunkId;
               if (a.foto) { last.foto = a.foto; last.fotoNombre = a.foto_nombre || ''; }
               count++;
             }
@@ -7652,7 +6962,7 @@ function _importPoint(title, type, notes, lat, lon, alt) {
 
   annotations.push({
     id: Date.now() + Math.random(),
-    title: title, type: type, modulo: _activeModule, notes: notes,
+    title: title, type: type, modulo: _activeModule, _chunk: _getSessionChunk(), notes: notes,
     geom: 'point', visible: true,
     entities: [ent],
     vertices: [{ lat: parseFloat(lat), lon: parseFloat(lon), alt: parseFloat(alt) }],
@@ -7724,7 +7034,7 @@ function _importLine(title, type, notes, verts, length) {
 
   annotations.push({
     id: Date.now() + Math.random(),
-    title: title, type: type, modulo: _activeModule, notes: notes,
+    title: title, type: type, modulo: _activeModule, _chunk: _getSessionChunk(), notes: notes,
     geom: 'line', visible: true,
     entities: ents,
     vertices: verts.map(function(v){ return { lat: parseFloat(v.lat), lon: parseFloat(v.lon), alt: parseFloat(v.alt||0) }; }),
@@ -7778,7 +7088,7 @@ function _importPolygon(title, type, notes, verts) {
   var c0 = Cesium.Cartographic.fromCartesian(positions[0]);
   annotations.push({
     id: Date.now() + Math.random(),
-    title: title, type: type, modulo: _activeModule, notes: notes,
+    title: title, type: type, modulo: _activeModule, _chunk: _getSessionChunk(), notes: notes,
     geom: 'polygon', visible: true, entities: ents,
     vertices: verts.map(function(v){ return {lat:parseFloat(v.lat),lon:parseFloat(v.lon),alt:parseFloat(v.alt||0)}; }),
     area: area, vertexCount: verts.length,
@@ -7850,47 +7160,127 @@ function exportAsGeoJSON() {
   showToast('GeoJSON exportado — ' + features.length + ' anotaciones');
 }
 
-function exportAsJSON() {
-  var date = new Date().toISOString().slice(0,10);
-  var clean = annotations.map(function(a) {
-    return {
-      id:          a.id,
-      modulo:      a.modulo || 'bridges',
-      codigo:      a.codigo || null,
-      camView:     a.camView || null,
-      titulo:      a.title,
-      tipo:        a.type,
-      severidad:   a.severidad !== undefined ? a.severidad : null,
-      componente:  a.componente || null,
-      elemento:    a.elemento   || null,
-      geometria:   a.geom || 'point',
-      notas:       a.notes || '',
-      vertices:    a.vertices || [],
-      longitud_m:  a.length !== undefined ? parseFloat(a.length.toFixed(4)) : null,
-      area_m2:     a.area !== undefined ? parseFloat(a.area.toFixed(6)) : null,
-      num_vertices: a.vertexCount || 1,
-      foto:        a.foto || null,
-      foto_nombre: a.fotoNombre || null,
-    };
+
+function _showExportChunkModal(onSelect) {
+  // Si no hay chunks, exportar todo directo
+  if (!_chunks.length) { onSelect(null); return; }
+  // Crear modal inline
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:9500;display:flex;align-items:center;justify-content:center;';
+  var box = document.createElement('div');
+  box.style.cssText = 'background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:22px;width:380px;max-width:95vw;';
+  var title = document.createElement('div');
+  title.style.cssText = 'font-family:var(--text-cond);font-size:12px;letter-spacing:2px;color:var(--accent);margin-bottom:14px;';
+  title.textContent = _lang==='en'?'EXPORT PACKAGE':'EXPORTAR PAQUETE';
+  box.appendChild(title);
+  // Botón "Todos"
+  var allBtn = document.createElement('button');
+  allBtn.style.cssText = 'width:100%;padding:10px;margin-bottom:6px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--text-cond);font-size:12px;cursor:pointer;text-align:left;';
+  allBtn.textContent = (_lang==='en'?'All packages':'Todos los paquetes')+' ('+annotations.length+')';
+  allBtn.onclick = function(){ document.body.removeChild(overlay); onSelect(null); };
+  box.appendChild(allBtn);
+  // Botón por chunk
+  _chunks.forEach(function(ch) {
+    var cnt = annotations.filter(function(a){ return a._chunk===ch.id; }).length;
+    if (cnt === 0) return; // No mostrar paquetes vacíos
+    var btn = document.createElement('button');
+    btn.style.cssText = 'width:100%;padding:10px;margin-bottom:6px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--text-cond);font-size:12px;cursor:pointer;text-align:left;';
+    btn.textContent = ch.name+' ('+cnt+')';
+    btn.onclick = (function(id){ return function(){ document.body.removeChild(overlay); onSelect(id); }; })(ch.id);
+    box.appendChild(btn);
   });
-  _downloadBlob(JSON.stringify({ proyecto:'INSPECTWIN', exportado: new Date().toISOString(),
-    total: clean.length, puente: _bridgeData || null,
-    vistas: _savedViews.length ? _savedViews : null,
-    anotaciones: clean }, null, 2),
-    'anotaciones-inspectwin-' + date + '.json', 'application/json');
-  document.getElementById('export-menu').style.display = 'none';
-  showToast('JSON exportado — ' + clean.length + ' anotaciones');
+  // Cancelar
+  var cancelBtn = document.createElement('button');
+  cancelBtn.style.cssText = 'width:100%;padding:8px;margin-top:4px;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--text-dim);font-family:var(--text-cond);font-size:11px;cursor:pointer;';
+  cancelBtn.textContent = _lang==='en'?'Cancel':'Cancelar';
+  cancelBtn.onclick = function(){ document.body.removeChild(overlay); };
+  box.appendChild(cancelBtn);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
 }
 
+function exportAsJSON() {
+  document.getElementById('export-menu').style.display = 'none';
+  _showExportChunkModal(function(chunkFilter) {
+  var date  = new Date().toISOString().slice(0,10);
+  var sourceAnns = chunkFilter ? annotations.filter(function(a){ return a._chunk===chunkFilter; }) : annotations;
+  var clean = sourceAnns.map(function(a) {
+    return {
+      id:           a.id,
+      modulo:       a.modulo || 'bridges',
+      _chunk:       a._chunk || null,
+      codigo:       a.codigo || null,
+      camView:      a.camView || null,
+      titulo:       a.title,
+      tipo:         a.type,
+      severidad:    a.severidad !== undefined ? a.severidad : null,
+      componente:   a.componente || null,
+      elemento:     a.elemento   || null,
+      geometria:    a.geom || 'point',
+      notas:        a.notes || '',
+      vertices:     a.vertices || [],
+      longitud_m:   a.length !== undefined ? parseFloat(a.length.toFixed(4)) : null,
+      area_m2:      a.area   !== undefined ? parseFloat(a.area.toFixed(6))   : null,
+      num_vertices: a.vertexCount || 1,
+      foto:         a.foto || null,
+      foto_nombre:  a.fotoNombre || null,
+    };
+  });
+  var jsonStr = JSON.stringify({
+    proyecto: 'INSPECTWIN',
+    exportado: new Date().toISOString(),
+    total: clean.length,
+    puente: _bridgeData || null,
+    vistas: _savedViews && _savedViews.length ? _savedViews : null,
+    anotaciones: clean
+  }, null, 2);
+  var defaultName = 'anotaciones-inspectwin-' + date + '.json';
+  document.getElementById('export-menu').style.display = 'none';
+
+  // Intentar con File System Access API (diálogo nativo con ruta y nombre)
+  if (window.showSaveFilePicker) {
+    window.showSaveFilePicker({
+      suggestedName: defaultName,
+      types: [{
+        description: 'Archivo JSON',
+        accept: { 'application/json': ['.json'] }
+      }]
+    }).then(function(fileHandle) {
+      return fileHandle.createWritable().then(function(writable) {
+        return writable.write(jsonStr).then(function() {
+          return writable.close();
+        });
+      }).then(function() {
+        showToast((_lang==='en'?'JSON saved — ':'JSON guardado — ') + clean.length + (_lang==='en'?' annotations':' anotaciones'));
+      });
+    }).catch(function(err) {
+      // Usuario canceló — no hacer nada
+      if (err.name !== 'AbortError') {
+        // Fallback si falla
+        _downloadBlob(jsonStr, defaultName, 'application/json');
+        showToast((_lang==='en'?'JSON exported — ':'JSON exportado — ') + clean.length + (_lang==='en'?' annotations':' anotaciones'));
+      }
+    });
+  } else {
+    // Fallback para browsers sin File System Access API
+    _downloadBlob(jsonStr, defaultName, 'application/json');
+    showToast((_lang==='en'?'JSON exported — ':'JSON exportado — ') + clean.length + (_lang==='en'?' annotations':' anotaciones'));
+  } // fin else
+  }); // fin _showExportChunkModal
+}
+
+
 function exportAsCSV() {
+  _showExportChunkModal(function(chunkFilter) {
   var date = new Date().toISOString().slice(0,10);
-  var rows = ['id,titulo,tipo,geometria,longitud_m,lat,lon,alt,notas'];
-  annotations.forEach(function(a) {
+  var rows = ['id,titulo,tipo,paquete,geometria,longitud_m,lat,lon,alt,notas'];
+  var sourceAnns = chunkFilter ? annotations.filter(function(a){ return a._chunk===chunkFilter; }) : annotations;
+  sourceAnns.forEach(function(a) {
     var verts = a.vertices && a.vertices.length > 0 ? a.vertices : [a.coords || {}];
     verts.forEach(function(v, vi) {
       rows.push([
         a.id, '"'+(a.title||'').replace(/"/g,'""')+'"',
-        a.type, a.geom||'point',
+        a.type, a._chunk||'',a.geom||'point',
         a.length ? a.length.toFixed(4) : '',
         v.lat||'', v.lon||'', v.alt||'',
         '"'+(a.notes||'').replace(/"/g,'""')+'"'
@@ -7899,7 +7289,8 @@ function exportAsCSV() {
   });
   _downloadBlob(rows.join('\n'), 'anotaciones-inspectwin-' + date + '.csv', 'text/csv');
   document.getElementById('export-menu').style.display = 'none';
-  showToast('CSV exportado');
+  showToast('CSV exportado — ' + sourceAnns.length + (_lang==='en'?' annotations':' anotaciones'));
+  }); // fin _showExportChunkModal
 }
 
 // ── CONTROLES VISUALES ──
