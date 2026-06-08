@@ -1136,9 +1136,19 @@
     letter-spacing: 1.5px; width: 100%; outline: none; padding: 0;
   }
   .chunk-count {
-    font-family: var(--text-mono); font-size: 9px;
-    color: var(--text-dim); flex-shrink: 0;
+    font-family: var(--text-mono); font-size: 11px;
+    color: var(--text-dim); flex-shrink: 0; font-weight: 600;
   }
+  .chunk-eye-btn {
+    background: transparent; border: none;
+    cursor: pointer; font-size: 11px; padding: 0 2px;
+    flex-shrink: 0; color: var(--accent);
+    opacity: 0.7; transition: opacity 0.15s, color 0.15s;
+    line-height: 1;
+  }
+  .chunk-eye-btn:hover { opacity: 1; }
+  .chunk-eye-btn.hidden { color: var(--text-dim); opacity: 0.4; }
+  .chunk-body.chunk-hidden { opacity: 0.35; pointer-events: none; }
   .chunk-del-btn {
     background: transparent; border: none; color: var(--text-dim);
     cursor: pointer; font-size: 10px; padding: 0 2px; flex-shrink: 0;
@@ -6362,14 +6372,20 @@ function renderAnnotationList() {
     var cnt  = annotations.filter(function(a){ return a._chunk===chunkId; }).length;
     var arrowCls = ch.collapsed ? 'chunk-arrow collapsed' : 'chunk-arrow';
     var bodyCls  = ch.collapsed ? 'chunk-body collapsed' : 'chunk-body';
+    var eyeCls  = ch._hidden ? 'chunk-eye-btn hidden' : 'chunk-eye-btn';
+    var eyeIcon = ch._hidden
+      ? '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d=\"M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19M1 1l22 22\"/></svg>'
+      : '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d=\"M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/></svg>';
+    var bodyHiddenCls = ch._hidden ? 'chunk-body chunk-hidden' : bodyCls;
     html += '<div class="chunk-header" data-chunk-id="'+chunkId+'">'
       +'<span class="'+arrowCls+'">&#9660;</span>'
       +'<span class="chunk-name">'+ch.name+'</span>'
+      +'<button class="'+eyeCls+'" data-action="eye" data-chunk-id="'+chunkId+'" title="'+(ch._hidden?'Mostrar':'Ocultar')+'">'+eyeIcon+'</button>'
       +'<span class="chunk-count">'+cnt+'</span>'
       +'<button class="chunk-del-btn" data-action="rename" data-chunk-id="'+chunkId+'" title="Renombrar">&#9998;</button>'
       +'<button class="chunk-del-btn" data-action="delete" data-chunk-id="'+chunkId+'" title="Eliminar" style="color:#e17055;">&#10005;</button>'
       +'</div>'
-      +'<div class="'+bodyCls+'" data-chunk-body="'+chunkId+'">';
+      +'<div class="'+bodyHiddenCls+'" data-chunk-body="'+chunkId+'">';
     anns.forEach(function(a){ html += annCard(a); });
     html += '</div>';
   }); // fin chunkIds.forEach
@@ -6394,13 +6410,15 @@ function renderAnnotationList() {
   if (!list._chunkDelegated) {
     list._chunkDelegated = true;
     list.addEventListener('click', function(e) {
-      // Botones de acción (rename/delete) — tienen data-action
-      var btn = e.target;
-      if (btn.dataset && btn.dataset.action) {
+      // Botones de acción — usar closest() para capturar clicks en SVG hijos
+      var btn = e.target.closest ? e.target.closest('[data-action]') : null;
+      if (!btn && e.target.dataset && e.target.dataset.action) btn = e.target;
+      if (btn && btn.dataset && btn.dataset.action) {
         e.stopPropagation();
         var cid = btn.getAttribute('data-chunk-id');
         if (btn.dataset.action === 'rename') startRenameChunk(cid, btn);
         if (btn.dataset.action === 'delete') deleteChunk(cid);
+        if (btn.dataset.action === 'eye')  { toggleChunkVisibility(cid); return; }
         return;
       }
       // Click en el encabezado del chunk — buscar el div.chunk-header
@@ -6686,6 +6704,20 @@ function toggleAllAnnotations() {
     }
   });
   showToast(_allAnnotationsVisible ? t('toast_ann_visible') : t('toast_ann_hidden'));
+}
+
+function toggleChunkVisibility(chunkId) {
+  var ch = _chunks.find(function(c){ return c.id === chunkId; });
+  if (!ch) return;
+  ch._hidden = !ch._hidden;
+  var show = !ch._hidden;
+  annotations.forEach(function(ann) {
+    if (ann._chunk !== chunkId) return;
+    ann.entities && ann.entities.forEach(function(e) {
+      if (e) try { e.show = show; } catch(ex) {}
+    });
+  });
+  renderAnnotationList();
 }
 
 function toggleAnnVisibility(idx) {
