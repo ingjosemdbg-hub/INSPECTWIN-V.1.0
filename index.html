@@ -50,11 +50,6 @@
   body.light-mode .tool-btn { color: #1a2336; }
   body.light-mode .tool-btn:hover { color: #0080aa; }
   body.light-mode .tool-btn.active { color: #0080aa; border-color: #0080aa; background: rgba(0,128,170,0.1); }
-  body.light-mode #demo-banner {
-    background: rgba(0,128,170,0.1);
-    border-color: rgba(0,128,170,0.3);
-    color: #0080aa;
-  }
   body.light-mode .annotation-item { background: #f5f7fa; border-color: #d0d7e2; }
   body.light-mode .annotation-item:hover { background: #eaf0f6; }
   body.light-mode .ann-input, body.light-mode select.ann-input { background: #f0f3f7; border-color: #c8d0dc; color: #1a2336; }
@@ -528,24 +523,6 @@
     font-size: 11px;
     color: var(--text-dim);
     letter-spacing: 2px;
-  }
-
-  /* Demo banner */
-  #demo-banner {
-    position: absolute;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(255,209,102,0.12);
-    border: 1px solid rgba(255,209,102,0.3);
-    color: var(--warn);
-    font-family: var(--text-mono);
-    font-size: 10px;
-    letter-spacing: 2px;
-    padding: 5px 14px;
-    border-radius: 2px;
-    z-index: 10;
-    pointer-events: none;
   }
 
   /* Toast */
@@ -1438,8 +1415,6 @@
       <div class="es-sub">Carga un tileset.json o archivo .glb para iniciar</div>
     </div>
 
-    <div id="demo-banner">MODO DEMO — TILE PHOTOGRAMMETRY VIEWER v1.0</div>
-
     <!-- Indicador de ejes 3D — esquina inferior izquierda -->
     <!-- Panel flotante de perfil -->
     <div id="profile-panel" style="display:none;position:absolute;bottom:16px;left:16px;right:260px;z-index:50;
@@ -1512,6 +1487,14 @@
           <button onclick="setBasemap('none')"      id="bm-none" class="bm-btn bm-active">OFF</button>
           <button onclick="setBasemap('satellite')" id="bm-sat"  class="bm-btn">SAT</button>
           <button onclick="setBasemap('map')"       id="bm-map"  class="bm-btn">MAP</button>
+        </div>
+      </div>
+
+      <div class="ctrl-row" style="margin-top:8px;">
+        <label><span>Proveedor</span> <span id="basemap-provider-val" style="color:var(--accent)">ESRI</span></label>
+        <div style="display:flex;gap:6px;margin-top:6px;">
+          <button onclick="setBasemapProvider('esri')"   id="bm-prov-esri"   class="bm-btn bm-active">ESRI</button>
+          <button onclick="setBasemapProvider('google')" id="bm-prov-google" class="bm-btn">GOOGLE</button>
         </div>
       </div>
 
@@ -1850,6 +1833,18 @@ function setSensitivity(type, val) {
 // ── BASEMAP ──
 var _basemapLayer = null;
 var _basemapMode = 'none';
+var _basemapProvider = localStorage.getItem('inspectwin_basemap_provider') || 'esri';
+
+function setBasemapProvider(provider) {
+  _basemapProvider = provider;
+  localStorage.setItem('inspectwin_basemap_provider', provider);
+  ['esri','google'].forEach(function(p){
+    document.getElementById('bm-prov-'+p)?.classList.remove('bm-active');
+  });
+  document.getElementById('bm-prov-'+provider)?.classList.add('bm-active');
+  document.getElementById('basemap-provider-val').textContent = provider.toUpperCase();
+  if (_basemapMode !== 'none') setBasemap(_basemapMode);
+}
 
 function setBasemap(mode) {
   _basemapMode = mode;
@@ -1897,10 +1892,8 @@ function setBasemap(mode) {
 
   // URLs de basemap — Google funciona desde servidor HTTP/HTTPS (GitHub Pages, localhost)
   // ESRI funciona también desde archivo local (file://)
-  const isHttps = window.location.protocol === 'https:' || window.location.protocol === 'http:';
-
   var url, credit, maxLevel;
-  if (isHttps) {
+  if (_basemapProvider === 'google') {
     // Google Maps — alta calidad, requiere servidor HTTP
     const lyrs = mode === 'satellite' ? 's' : 'm';
     url      = 'https://mt{s}.google.com/vt/lyrs=' + lyrs + '&x={x}&y={y}&z={z}';
@@ -3684,10 +3677,6 @@ function applyLang() {
   var vsave = document.querySelector('#views-panel button:last-child');
   if (vsave) vsave.innerHTML = '&#9733; ' + t('views_save').replace('⭐ ','');
 
-  // Demo banner
-  var banner = document.getElementById('demo-banner');
-  if (banner) banner.textContent = t('demo_banner');
-
   // Botón exportar
   var expBtn = document.getElementById('btn-export-ann');
   if (expBtn) expBtn.textContent = t('btn_export');
@@ -3984,7 +3973,18 @@ function toggleModelVisibility(idx) {
 function centerToModel(idx) {
   var m = _models[idx];
   if (!m || !m.tileset) return;
-  viewer.flyTo(m.tileset);
+
+  const bs = m.bs || (m.tileset.boundingSphere?.radius > 1 ? m.tileset.boundingSphere : null);
+
+  if (bs) {
+    const range = Math.max(bs.radius * 1.8, 30);
+    viewer.camera.flyToBoundingSphere(bs, {
+      duration: 1.5,
+      offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-20), range),
+    });
+  } else {
+    viewer.flyTo(m.tileset);
+  }
 }
 
 function removeModel(idx) {
@@ -4230,7 +4230,12 @@ async function buildFileMap(zip) {
 function computeBSFromJson(tilesetJson) {
   try {
     const root = tilesetJson.root;
-    const bv = root.boundingVolume;
+    // Priorizar el boundingVolume del CONTENIDO real (root.content.boundingVolume)
+    // sobre el del nodo raíz, ya que este último suele ser un cubo simétrico
+    // que envuelve todo el árbol de tiles y cuyo centro puede no coincidir
+    // con el centro visual real del modelo (común en tilesets con jerarquía
+    // generados por Metashape/RealityCapture).
+    const bv = (root.content && root.content.boundingVolume) || root.boundingVolume;
     const transform = root.transform; // column-major 4x4
 
     if (bv.box && transform) {
@@ -4240,8 +4245,9 @@ function computeBSFromJson(tilesetJson) {
       const ex = transform[0]*cx + transform[4]*cy + transform[8]*cz  + transform[12];
       const ey = transform[1]*cx + transform[5]*cy + transform[9]*cz  + transform[13];
       const ez = transform[2]*cx + transform[6]*cy + transform[10]*cz + transform[14];
-      // Radio = magnitud del half-axis mayor
-      const r = Math.sqrt(bv.box[3]**2 + bv.box[7]**2 + bv.box[11]**2);
+      // Radio = promedio de los semi-ejes (más representativo que la diagonal
+      // para formas alargadas como puentes; el centro sigue siendo el centro real)
+      const r = (bv.box[3] + bv.box[7] + bv.box[11]) / 3;
       return new Cesium.BoundingSphere(new Cesium.Cartesian3(ex, ey, ez), r);
 
     } else if (bv.sphere) {
@@ -4288,6 +4294,13 @@ document.addEventListener('DOMContentLoaded', function() {
     cb.checked = _autoScreenshot;
     toggleAutoShot(_autoScreenshot);
   }
+  // Inicializar botón de proveedor de mapa base según preferencia guardada
+  ['esri','google'].forEach(function(p){
+    document.getElementById('bm-prov-'+p)?.classList.remove('bm-active');
+  });
+  document.getElementById('bm-prov-'+_basemapProvider)?.classList.add('bm-active');
+  var pv = document.getElementById('basemap-provider-val');
+  if (pv) pv.textContent = _basemapProvider.toUpperCase();
 });
 
 function toggleAutoShot(val) {
@@ -4459,10 +4472,10 @@ function centerModel() {
     || (currentTileset.boundingSphere?.radius > 1 ? currentTileset.boundingSphere : null);
 
   if (bs) {
-    const range = Math.max(bs.radius * 2.8, 30);
+    const range = Math.max(bs.radius * 1.8, 30);
     viewer.camera.flyToBoundingSphere(bs, {
       duration: 1.5,
-      offset: new Cesium.HeadingPitchRange(0, -Cesium.Math.PI_OVER_FOUR, range),
+      offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-20), range),
     });
     showToast('✓ Modelo centrado');
     return;
