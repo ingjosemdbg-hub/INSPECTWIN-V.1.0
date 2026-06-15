@@ -1251,7 +1251,10 @@
   <div id="panel-left">
     <div class="panel-section">
       <div class="panel-label" id="lbl-models" style="display:flex;justify-content:space-between;align-items:center;">
-        <span id="lbl-models-text">Modelos <span id="model-count" style="color:var(--accent)">0</span></span>
+        <span id="lbl-models-text" style="display:flex;align-items:center;gap:6px;cursor:pointer;" onclick="toggleModelsList()">
+          <span id="models-arrow" class="chunk-arrow">&#9660;</span>
+          Modelos <span id="model-count" style="color:var(--accent)">0</span>
+        </span>
         <button onclick="document.getElementById('file-input').click()" id="btn-add-model"
           title="Agregar modelo"
           style="display:flex;align-items:center;gap:4px;background:transparent;
@@ -1266,7 +1269,7 @@
       </div>
 
       <!-- Lista de modelos cargados -->
-      <div id="models-list" style="margin-bottom:8px;"></div>
+      <div id="models-list" class="chunk-body" style="margin-bottom:8px;"></div>
 
       <!-- Input oculto para agregar modelo -->
       <input type="file" id="file-input" accept=".json,.3tz,.zip,.glb,.gltf" onchange="handleFileLoad(event)" style="display:none;">
@@ -1302,7 +1305,7 @@
             </svg>
           </button>
           <!-- Exportar -->
-          <button onclick="exportAnnotations()" title="Exportar anotaciones"
+          <button onclick="exportAnnotations(event)" title="Exportar anotaciones"
             style="background:transparent;border:1px solid var(--border);color:var(--text-dim);cursor:pointer;padding:3px 5px;border-radius:3px;display:flex;align-items:center;transition:all 0.15s;"
             onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
             onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)'">
@@ -1368,7 +1371,7 @@
 
     <input type="file" id="import-input" accept=".geojson,.json" style="display:none;" onchange="importAnnotations(event)">
     <!-- Menú export (activado desde el icono del header) -->
-    <div id="export-menu" style="display:none;position:fixed;bottom:60px;left:210px;width:220px;
+    <div id="export-menu" style="display:none;position:fixed;width:220px;
       background:var(--panel);border:1px solid var(--border);border-radius:4px;z-index:2000;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.4);">
       <div style="font-family:var(--text-cond);font-size:9px;letter-spacing:2px;color:var(--text-dim);padding:6px 10px 4px;">EXPORTAR COMO</div>
       <button onclick="exportAsGeoJSON()" style="width:100%;background:transparent;border:none;border-top:1px solid var(--border);
@@ -4294,6 +4297,13 @@ document.addEventListener('DOMContentLoaded', function() {
     cb.checked = _autoScreenshot;
     toggleAutoShot(_autoScreenshot);
   }
+  // Restaurar estado colapsado de la lista de modelos
+  if (localStorage.getItem('inspectwin_models_collapsed') === 'true') {
+    var mb = document.getElementById('models-list');
+    var ma = document.getElementById('models-arrow');
+    if (mb) mb.classList.add('collapsed');
+    if (ma) ma.classList.add('collapsed');
+  }
   // Inicializar botón de proveedor de mapa base según preferencia guardada
   ['esri','google'].forEach(function(p){
     document.getElementById('bm-prov-'+p)?.classList.remove('bm-active');
@@ -6192,6 +6202,15 @@ function _getOrCreateChunk(chunkId, chunkName) {
   return ch;
 }
 
+function toggleModelsList() {
+  var body  = document.getElementById('models-list');
+  var arrow = document.getElementById('models-arrow');
+  if (!body || !arrow) return;
+  body.classList.toggle('collapsed');
+  arrow.classList.toggle('collapsed');
+  localStorage.setItem('inspectwin_models_collapsed', body.classList.contains('collapsed') ? 'true' : 'false');
+}
+
 function toggleChunk(chunkId) {
   if (chunkId === '__nochunk__') {
     // Toggle visual sin chunk real
@@ -6389,7 +6408,7 @@ function renderAnnotationList() {
     var eyeIcon = ch._hidden
       ? '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d=\"M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19M1 1l22 22\"/></svg>'
       : '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d=\"M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/></svg>';
-    var bodyHiddenCls = ch._hidden ? 'chunk-body chunk-hidden' : bodyCls;
+    var bodyHiddenCls = bodyCls + (ch._hidden ? ' chunk-hidden' : '');
     html += '<div class="chunk-header" data-chunk-id="'+chunkId+'">'
       +'<span class="'+arrowCls+'">&#9660;</span>'
       +'<span class="chunk-name">'+ch.name+'</span>'
@@ -7186,11 +7205,33 @@ function _importPolygon(title, type, notes, verts) {
   });
 }
 
-function exportAnnotations() {
+function exportAnnotations(ev) {
   if (annotations.length === 0) { showToast('No hay anotaciones para exportar'); return; }
-  // Mostrar opciones de exportación
   var menu = document.getElementById('export-menu');
-  if (menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  if (!menu) return;
+
+  if (menu.style.display === 'block') {
+    menu.style.display = 'none';
+    return;
+  }
+
+  // Posicionar el menú arriba del botón que lo activó
+  var btnEl = (ev && ev.currentTarget) ? ev.currentTarget : null;
+  if (btnEl) {
+    var rect = btnEl.getBoundingClientRect();
+    menu.style.display = 'block';   // necesario para medir offsetHeight
+    var menuH = menu.offsetHeight;
+    var top  = rect.top - menuH - 6;
+    if (top < 8) top = rect.bottom + 6; // si no cabe arriba, ponerlo abajo
+    var left = rect.left;
+    var maxLeft = window.innerWidth - menu.offsetWidth - 8;
+    if (left > maxLeft) left = maxLeft;
+    menu.style.top    = top + 'px';
+    menu.style.left   = left + 'px';
+    menu.style.bottom = 'auto';
+  } else {
+    menu.style.display = 'block';
+  }
 }
 
 function _downloadBlob(content, filename, mime) {
@@ -7363,19 +7404,83 @@ function exportAsJSON() {
 function exportAsCSV() {
   _showExportChunkModal(function(chunkFilter) {
   var date = new Date().toISOString().slice(0,10);
-  var rows = ['id,titulo,tipo,paquete,geometria,longitud_m,lat,lon,alt,notas'];
+
+  // ── Mapas de traducción ES/EN ────────────────────────────────────────────
+  var GEOM_ES = { point:'Punto', line:'Línea', polygon:'Área' };
+  var GEOM_EN = { point:'Point', line:'Line', polygon:'Area' };
+  var MOD_ES  = { bridges:'Puentes', slopes:'Taludes', roads:'Caminos' };
+  var MOD_EN  = { bridges:'Bridges', slopes:'Slopes',  roads:'Roads' };
+  var SEV_ES  = ['Sin daño','Muy leve','Leve','Moderado','Severo','Muy severo'];
+  var SEV_EN  = ['No damage','Very slight','Slight','Moderate','Severe','Very severe'];
+  var TYPE_LABELS_EN = {
+    fisura:'Crack', crack:'Crack', desconchadura:'Spalling', rebar:'Exposed rebar',
+    corrosion:'Corrosion', carbonatacion:'Carbonation', humedad:'Moisture',
+    eflorecencias:'Efflorescence', socavacion:'Scour', bache:'Pothole',
+    pintura:'Paint', erosion:'Erosion', asolve:'Sedimentation', vegetacion:'Vegetation',
+    anclajes:'Anchors', impactos:'Impacts', vandalismo:'Vandalism', other:'Other'
+  };
+
+  // Helper para obtener el NOMBRE real del paquete (no solo el ID)
+  function chunkName(chunkId) {
+    if (!chunkId) return '';
+    var ch = _chunks.find(function(c){ return c.id === chunkId; });
+    return ch ? ch.name : chunkId;
+  }
+
+  var csvEsc = function(s){ return '"'+String(s==null?'':s).replace(/"/g,'""')+'"'; };
+
+  var header = [
+    'id','codigo','titulo',
+    'tipo_es','type_en',
+    'geometria_es','geometry_en',
+    'modulo_es','asset_type_en',
+    'severidad','severidad_es','severity_en',
+    'componente','elemento','paquete',
+    'longitud_m','area_m2',
+    'lat','lon','alt','notas'
+  ];
+  var rows = [header.join(',')];
+
   var sourceAnns = chunkFilter ? annotations.filter(function(a){ return a._chunk===chunkFilter; }) : annotations;
   sourceAnns.forEach(function(a) {
+    var geom    = a.geom || 'point';
+    var modulo  = a.modulo || 'bridges';
+    var sev     = (a.severidad !== undefined && a.severidad !== null) ? a.severidad : null;
+    var sevES   = sev !== null ? SEV_ES[sev] : '';
+    var sevEN   = sev !== null ? SEV_EN[sev] : '';
+    var tipoES  = TYPE_LABELS[a.type] || a.type || '';
+    var tipoEN  = TYPE_LABELS_EN[a.type] || a.type || '';
+    var paquete = chunkName(a._chunk);
+
+    // Una sola fila por anotación: lat/lon/alt = centroide de todos los vértices
     var verts = a.vertices && a.vertices.length > 0 ? a.vertices : [a.coords || {}];
-    verts.forEach(function(v, vi) {
-      rows.push([
-        a.id, '"'+(a.title||'').replace(/"/g,'""')+'"',
-        a.type, a._chunk||'',a.geom||'point',
-        a.length ? a.length.toFixed(4) : '',
-        v.lat||'', v.lon||'', v.alt||'',
-        '"'+(a.notes||'').replace(/"/g,'""')+'"'
-      ].join(','));
+    var n = verts.length;
+    var sumLat=0, sumLon=0, sumAlt=0, cAlt=0;
+    verts.forEach(function(v){
+      sumLat += (v.lat||0);
+      sumLon += (v.lon||0);
+      if (v.alt !== undefined && v.alt !== null) { sumAlt += v.alt; cAlt++; }
     });
+    var cLat = n ? (sumLat/n) : '';
+    var cLon = n ? (sumLon/n) : '';
+    var cAltVal = cAlt ? (sumAlt/cAlt) : '';
+
+    rows.push([
+      a.id,
+      a.codigo || '',
+      csvEsc(a.title),
+      csvEsc(tipoES), csvEsc(tipoEN),
+      GEOM_ES[geom]||geom, GEOM_EN[geom]||geom,
+      MOD_ES[modulo]||modulo, MOD_EN[modulo]||modulo,
+      sev !== null ? sev : '',
+      csvEsc(sevES), csvEsc(sevEN),
+      csvEsc(a.componente||''), csvEsc(a.elemento||''),
+      csvEsc(paquete),
+      a.length !== undefined && a.length !== null ? a.length.toFixed(4) : '',
+      a.area   !== undefined && a.area   !== null ? a.area.toFixed(6)   : '',
+      cLat!==''?cLat.toFixed(8):'', cLon!==''?cLon.toFixed(8):'', cAltVal!==''?cAltVal.toFixed(3):'',
+      csvEsc(a.notes||'')
+    ].join(','));
   });
   _downloadBlob(rows.join('\n'), 'anotaciones-inspectwin-' + date + '.csv', 'text/csv');
   document.getElementById('export-menu').style.display = 'none';
